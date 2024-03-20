@@ -1,11 +1,30 @@
 {
 	"name": "eslint_ts",
-	"private": true,
-	"version": "1.0.0",
+	"version": "0.0.1",
+	"private": false,
+	"homepage": "https://github.com/CodeEditorLand/Foundation#readme",
+	"bugs": {
+		"url": "https://github.com/CodeEditorLand/Foundation/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/CodeEditorLand/Foundation.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Playform",
+		"email": "Hello@Playform.Cloud",
+		"url": "https://playform.cloud"
+	},
+	"type": "module",
+	"scripts": {
+		"prepublishOnly": "TypeScriptESBuild 'Source/**/*.ts'"
+	},
 	"devDependencies": {
-		"@typescript-eslint/eslint-plugin": "^6.19.1",
-		"@typescript-eslint/parser": "^6.19.1",
-		"eslint": "^8.56.0",
-		"typescript": "^5.3.3"
+		"typescript": "^5.3.3",
+		"typescript-esbuild": "latest"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }

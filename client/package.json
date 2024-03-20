@@ -1,29 +1,35 @@
 {
 	"name": "client",
 	"displayName": "ESLint",
+	"version": "0.0.1",
+	"private": false,
 	"description": "Integrates ESLint into VS Code.",
-	"version": "3.0.1",
-	"private": true,
-	"author": "Microsoft Corporation",
-	"license": "MIT",
+	"homepage": "https://github.com/CodeEditorLand/Foundation#readme",
+	"bugs": {
+		"url": "https://github.com/CodeEditorLand/Foundation/issues"
+	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-eslint.git"
+		"url": "git+https://github.com/CodeEditorLand/Foundation.git"
 	},
-	"bugs": {
-		"url": "https://github.com/Microsoft/vscode-eslint/issues"
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Playform",
+		"email": "Hello@Playform.Cloud",
+		"url": "https://playform.cloud"
 	},
-	"engines": {
-		"vscode": "^1.86.0"
-	},
-	"devDependencies": {
-		"@types/vscode": "1.86.0"
+	"type": "module",
+	"scripts": {
+		"prepublishOnly": "TypeScriptESBuild 'Source/**/*.ts'"
 	},
 	"dependencies": {
 		"vscode-languageclient": "10.0.0-next.2"
 	},
-	"scripts": {
-		"test": "node ../node_modules/mocha/bin/_mocha",
-		"lint": "node ../node_modules/eslint/bin/eslint.js --ext ts src"
+	"devDependencies": {
+		"@types/vscode": "1.86.0",
+		"typescript-esbuild": "latest"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }

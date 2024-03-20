@@ -1,32 +1,39 @@
 {
 	"name": "eslint-server",
-	"version": "3.0.1",
-	"private": true,
-	"author": "Microsoft Corporation",
-	"license": "MIT",
+	"version": "0.0.1",
+	"private": false,
+	"homepage": "https://github.com/CodeEditorLand/Foundation#readme",
+	"bugs": {
+		"url": "https://github.com/CodeEditorLand/Foundation/issues"
+	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-eslint.git"
+		"url": "git+https://github.com/CodeEditorLand/Foundation.git"
 	},
-	"bugs": {
-		"url": "https://github.com/Microsoft/vscode-eslint/issues"
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Playform",
+		"email": "Hello@Playform.Cloud",
+		"url": "https://playform.cloud"
 	},
-	"engines": {
-		"node": "*"
-	},
-	"devDependencies": {
-		"@types/semver": "^7.5.8"
+	"type": "module",
+	"scripts": {
+		"clean": "rimraf ./out",
+		"prepublishOnly": "TypeScriptESBuild 'Source/**/*.ts'",
+		"webpack": "npm run clean && webpack --mode production --config ./webpack.config.js",
+		"webpack:dev": "npm run clean && webpack --mode none --config ./webpack.config.js"
 	},
 	"dependencies": {
+		"semver": "^7.6.0",
 		"vscode-languageserver": "10.0.0-next.2",
 		"vscode-languageserver-textdocument": "1.0.11",
-		"vscode-uri": "^3.0.8",
-		"semver": "^7.6.0"
+		"vscode-uri": "^3.0.8"
 	},
-	"scripts": {
-		"webpack": "npm run clean && webpack --mode production --config ./webpack.config.js",
-		"webpack:dev": "npm run clean && webpack --mode none --config ./webpack.config.js",
-		"clean": "rimraf ./out",
-		"lint": "node ../node_modules/eslint/bin/eslint.js --ext ts src"
+	"devDependencies": {
+		"@types/semver": "^7.5.8",
+		"typescript-esbuild": "latest"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }
