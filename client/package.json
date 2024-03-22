@@ -1,35 +1,35 @@
 {
-	"author": {
-		"email": "Hello@Playform.Cloud",
-		"name": "Playform",
-		"url": "https://playform.cloud"
-	},
+	"name": "client",
+	"displayName": "ESLint",
+	"version": "0.0.1",
+	"private": false,
+	"description": "Integrates ESLint into VS Code.",
+	"homepage": "https://github.com/CodeEditorLand/Foundation#readme",
 	"bugs": {
 		"url": "https://github.com/CodeEditorLand/Foundation/issues"
-	},
-	"dependencies": {
-		"vscode-languageclient": "10.0.0-next.2"
-	},
-	"description": "Integrates ESLint into VS Code.",
-	"devDependencies": {
-		"@types/vscode": "1.86.0",
-		"typescript-esbuild": ""
-	},
-	"displayName": "ESLint",
-	"homepage": "https://github.com/CodeEditorLand/Foundation#readme",
-	"license": "SEE LICENSE IN LICENSE",
-	"name": "client",
-	"private": false,
-	"publishConfig": {
-		"access": "public"
 	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/CodeEditorLand/Foundation.git"
 	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "Playform",
+		"email": "Hello@Playform.Cloud",
+		"url": "https://playform.cloud"
+	},
+	"type": "module",
 	"scripts": {
 		"prepublishOnly": "TypeScriptESBuild 'Source/**/*.ts'"
 	},
-	"type": "module",
-	"version": "0.0.1"
+	"dependencies": {
+		"vscode-languageclient": "10.0.0-next.2"
+	},
+	"devDependencies": {
+		"@types/vscode": "1.86.0",
+		"typescript-esbuild": "0.4.5"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
