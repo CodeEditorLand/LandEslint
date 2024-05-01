@@ -1,11 +1,31 @@
 {
-	"author": {
-		"email": "Land@PlayForm.Cloud",
-		"name": "🌆 — Land —",
-		"url": "HTTPS://Land.PlayForm.Cloud"
-	},
+	"name": "eslint-server",
+	"version": "0.0.1",
+	"private": false,
+	"keywords": [
+		"land"
+	],
+	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/LandESLint#readme",
 	"bugs": {
 		"url": "HTTPS://GitHub.Com/CodeEditorLand/LandESLint/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+HTTPS://github.com/CodeEditorLand/LandESLint.git"
+	},
+	"license": "SEE LICENSE IN LICENSE",
+	"author": {
+		"name": "🌆 — Land —",
+		"email": "Land@PlayForm.Cloud",
+		"url": "HTTPS://Land.PlayForm.Cloud"
+	},
+	"type": "module",
+	"scripts": {
+		"Document": "Document 'Source/**/*.ts'",
+		"clean": "rimraf ./out",
+		"prepublishOnly": "Build 'Source/**/*.ts'",
+		"webpack": "npm run clean && webpack --mode production --config ./webpack.config.js",
+		"webpack:dev": "npm run clean && webpack --mode none --config ./webpack.config.js"
 	},
 	"dependencies": {
 		"semver": "7.6.0"
@@ -15,27 +35,7 @@
 		"@playform/document": "0.0.6",
 		"@types/semver": "7.5.8"
 	},
-	"homepage": "HTTPS://GitHub.Com/CodeEditorLand/LandESLint#readme",
-	"keywords": [
-		"land"
-	],
-	"license": "SEE LICENSE IN LICENSE",
-	"name": "eslint-server",
-	"private": false,
 	"publishConfig": {
 		"access": "public"
-	},
-	"repository": {
-		"type": "git",
-		"url": "git+HTTPS://github.com/CodeEditorLand/LandESLint.git"
-	},
-	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
-		"clean": "rimraf ./out",
-		"prepublishOnly": "Build 'Source/**/*.ts'",
-		"webpack": "npm run clean && webpack --mode production --config ./webpack.config.js",
-		"webpack:dev": "npm run clean && webpack --mode none --config ./webpack.config.js"
-	},
-	"type": "module",
-	"version": "0.0.1"
+	}
 }
