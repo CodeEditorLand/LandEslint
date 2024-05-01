@@ -28,12 +28,12 @@
 		"webpack:dev": "npm run clean && webpack --mode none --config ./webpack.config.js"
 	},
 	"dependencies": {
-		"semver": "^7.6.0"
+		"semver": "7.6.0"
 	},
 	"devDependencies": {
 		"@playform/build": "0.0.7",
 		"@playform/document": "0.0.6",
-		"@types/semver": "^7.5.8"
+		"@types/semver": "7.5.8"
 	},
 	"publishConfig": {
 		"access": "public"
