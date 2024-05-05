@@ -1,9 +1,7 @@
 {
-	"name": "client",
-	"displayName": "ESLint",
+	"name": "eslint9_rc_config",
 	"version": "0.0.1",
 	"private": false,
-	"description": "Integrates ESLint into VS Code.",
 	"keywords": [
 		"land"
 	],
@@ -26,10 +24,10 @@
 		"Document": "Document 'Source/**/*.ts'",
 		"prepublishOnly": "Build 'Source/**/*.ts'"
 	},
-	"dependencies": {},
 	"devDependencies": {
 		"@playform/build": "0.0.7",
-		"@playform/document": "0.0.6"
+		"@playform/document": "0.0.6",
+		"globals": "15.1.0"
 	},
 	"publishConfig": {
 		"access": "public"

@@ -1,0 +1,296 @@
+name: Node
+
+concurrency:
+    group: Node-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    security-events: write
+    contents: write
+    pull-requests: write
+
+on:
+    workflow_dispatch:
+    push:
+        branches: [Current]
+    pull_request:
+        branches: [Current]
+    workflow_call:
+
+jobs:
+    Pre-Publish:
+        runs-on: ubuntu-latest
+
+        env:
+            ADBLOCK: true
+            ASTRO_TELEMETRY_DISABLED: 1
+            AUTOMATEDLAB_TELEMETRY_OPTOUT: 1
+            AZURE_CORE_COLLECT_TELEMETRY: 0
+            CHOOSENIM_NO_ANALYTICS: 1
+            DIEZ_DO_NOT_TRACK: 1
+            DOTNET_CLI_TELEMETRY_OPTOUT: 1
+            DOTNET_INTERACTIVE_CLI_TELEMETRY_OPTOUT: 1
+            DO_NOT_TRACK: 1
+            ET_NO_TELEMETRY: 1
+            GATSBY_TELEMETRY_DISABLED: 1
+            GATSBY_TELEMETRY_OPTOUT: 1
+            GATSBY_TELEMETRY_OPT_OUT: 1
+            GRIT_TELEMETRY_DISABLED: 1
+            HASURA_GRAPHQL_ENABLE_TELEMETRY: false
+            HINT_TELEMETRY: off
+            HOMEBREW_NO_ANALYTICS: 1
+            INFLUXD_REPORTING_DISABLED: true
+            ITERATIVE_DO_NOT_TRACK: 1
+            NEXT_TELEMETRY_DEBUG: 1
+            NEXT_TELEMETRY_DISABLED: 1
+            NG_CLI_ANALYTICS: false
+            NUXT_TELEMETRY_DISABLED: 1
+            PIN_DO_NOT_TRACK: 1
+            POWERSHELL_TELEMETRY_OPTOUT: 1
+            SAM_CLI_TELEMETRY: 0
+            STNOUPGRADE: 1
+            STRIPE_CLI_TELEMETRY_OPTOUT: 1
+            TELEMETRY_DISABLED: 1
+
+        strategy:
+            matrix:
+                node-version: [18, 19, 20]
+
+        steps:
+            - uses: actions/checkout@v4.1.4
+
+            - uses: pnpm/action-setup@v3.0.0
+              with:
+                  version: 8.15.5
+                  run_install: |
+                      - recursive: true
+                        args: [
+                          --link-workspace-packages=true,
+                          --lockfile-only,
+                          --prefer-frozen-lockfile=false,
+                          --shamefully-hoist=false,
+                          --shared-workspace-lockfile=true,
+                          --strict-peer-dependencies=false,
+                          --unsafe-perm=true
+                        ]
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./client/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./client
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-client-Node-${{ matrix.node-version }}-Target
+                  path: ./client/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: .
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-Node-${{ matrix.node-version }}-Target
+                  path: ./Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./playgrounds/7.0/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./playgrounds/7.0
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-playgrounds-7.0-Node-${{ matrix.node-version }}-Target
+                  path: ./playgrounds/7.0/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./playgrounds/8.0/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./playgrounds/8.0
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-playgrounds-8.0-Node-${{ matrix.node-version }}-Target
+                  path: ./playgrounds/8.0/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./playgrounds/9.0/flat/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./playgrounds/9.0/flat
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-playgrounds-9.0-flat-Node-${{ matrix.node-version }}-Target
+                  path: ./playgrounds/9.0/flat/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./playgrounds/9.0/rc/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./playgrounds/9.0/rc
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-playgrounds-9.0-rc-Node-${{ matrix.node-version }}-Target
+                  path: ./playgrounds/9.0/rc/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./playgrounds/flat-config-fail/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./playgrounds/flat-config-fail
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-playgrounds-flat-config-fail-Node-${{ matrix.node-version }}-Target
+                  path: ./playgrounds/flat-config-fail/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./playgrounds/flat-config-mjs/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./playgrounds/flat-config-mjs
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-playgrounds-flat-config-mjs-Node-${{ matrix.node-version }}-Target
+                  path: ./playgrounds/flat-config-mjs/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./playgrounds/flat-config/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./playgrounds/flat-config
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-playgrounds-flat-config-Node-${{ matrix.node-version }}-Target
+                  path: ./playgrounds/flat-config/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./playgrounds/load-eslint/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./playgrounds/load-eslint
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-playgrounds-load-eslint-Node-${{ matrix.node-version }}-Target
+                  path: ./playgrounds/load-eslint/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./playgrounds/noWD/Source/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./playgrounds/noWD/Source
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-playgrounds-noWD-Source-Node-${{ matrix.node-version }}-Target
+                  path: ./playgrounds/noWD/Source/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./playgrounds/ts/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./playgrounds/ts
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-playgrounds-ts-Node-${{ matrix.node-version }}-Target
+                  path: ./playgrounds/ts/Target
+
+            - uses: actions/setup-node@v4.0.2
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "pnpm"
+                  cache-dependency-path: ./server/pnpm-lock.yaml
+
+            - run: pnpm install
+              working-directory: ./server
+
+            - run: pnpm run prepublishOnly
+              working-directory: .
+
+            - uses: actions/upload-artifact@v4.3.3
+              with:
+                  name: .-server-Node-${{ matrix.node-version }}-Target
+                  path: ./server/Target
