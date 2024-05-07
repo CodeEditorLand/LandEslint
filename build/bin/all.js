@@ -13,7 +13,7 @@ const child_process = require('child_process')
 const root = path.dirname(path.dirname(__dirname));
 const args = process.argv.slice(2);
 
-/** @type { { folder: string; scripts: string[] }[] } */
+
 const folders = [
 	{ folder: 'client', scripts: ['install', 'lint'] },
 	{ folder: 'server', scripts: ['install', 'lint'] }
