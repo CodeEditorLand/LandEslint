@@ -1,10 +1,4 @@
 {
 	"name": "eslint6_0",
-	"scripts": {
-		"Document": "Document 'Source/**/*.ts'",
-		"prepublishOnly": "Build 'Source/**/*.ts'"
-	},
-	"devDependencies": {
-		"@playform/build": "0.0.7"
-	}
+	"devDependencies": {}
 }
