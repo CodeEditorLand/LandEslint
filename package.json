@@ -599,11 +599,11 @@
 	},
 	"description": "Integrates ESLint JavaScript into VS Code.",
 	"devDependencies": {
-		"@types/node": "^20.14.2",
-		"merge-options": "^3.0.4",
-		"rimraf": "^5.0.7",
-		"shelljs": "^0.8.5",
-		"ts-loader": "^9.5.1"
+		"@types/node": "20.14.2",
+		"merge-options": "3.0.4",
+		"rimraf": "5.0.7",
+		"shelljs": "0.8.5",
+		"ts-loader": "9.5.1"
 	},
 	"displayName": "ESLint",
 	"enabledApiProposals": [],
