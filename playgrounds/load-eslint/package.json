@@ -1,6 +1,11 @@
 {
-	"name": "eslint8_flat_config",
-	"devDependencies": {
-		"globals": "^14.0.0"
-	}
+  "name": "eslint8_flat_config",
+  "private": true,
+  "version": "1.0.0",
+  "devDependencies": {
+    "eslint": "9.5.0",
+    "globals": "15.6.0",
+		"@typescript-eslint/eslint-plugin": "7.13.1",
+		"@typescript-eslint/parser": "7.13.1"
+  }
 }

@@ -2,9 +2,6 @@ const globals = require('globals');
 
 module.exports = [
 	{
-		ignores: ['dist/**']
-	},
-	{
 		files: ["**/*.js"],
 		languageOptions: {
 			sourceType: "module",
