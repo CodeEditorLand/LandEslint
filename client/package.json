@@ -1,8 +1,8 @@
 {
-	"dependencies": {},
-	"description": "Integrates ESLint into VS Code.",
-	"devDependencies": {},
-	"displayName": "ESLint",
 	"name": "client",
-	"scripts": {}
+	"displayName": "ESLint",
+	"description": "Integrates ESLint into VS Code.",
+	"scripts": {},
+	"dependencies": {},
+	"devDependencies": {}
 }
