@@ -1,6 +1,6 @@
 {
 	"name": "eslint8_flat_config_mjs",
 	"devDependencies": {
-		"globals": "15.7.0"
+		"globals": "15.8.0"
 	}
 }
