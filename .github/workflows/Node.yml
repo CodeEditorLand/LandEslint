@@ -75,7 +75,7 @@ jobs:
                           --unsafe-perm=true
                         ]
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -84,7 +84,7 @@ jobs:
             - run: pnpm install
               working-directory: ./client
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -93,7 +93,7 @@ jobs:
             - run: pnpm install
               working-directory: .
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -102,7 +102,7 @@ jobs:
             - run: pnpm install
               working-directory: ./playgrounds/7.0
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -111,7 +111,7 @@ jobs:
             - run: pnpm install
               working-directory: ./playgrounds/8.0
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -120,7 +120,7 @@ jobs:
             - run: pnpm install
               working-directory: ./playgrounds/9.0/flat
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -129,7 +129,7 @@ jobs:
             - run: pnpm install
               working-directory: ./playgrounds/9.0/rc
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -138,7 +138,7 @@ jobs:
             - run: pnpm install
               working-directory: ./playgrounds/flat-config-fail
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -147,7 +147,7 @@ jobs:
             - run: pnpm install
               working-directory: ./playgrounds/flat-config-mjs
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -156,7 +156,7 @@ jobs:
             - run: pnpm install
               working-directory: ./playgrounds/flat-config
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -165,7 +165,7 @@ jobs:
             - run: pnpm install
               working-directory: ./playgrounds/load-eslint
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -174,7 +174,7 @@ jobs:
             - run: pnpm install
               working-directory: ./playgrounds/noWD/Source
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
@@ -183,7 +183,7 @@ jobs:
             - run: pnpm install
               working-directory: ./playgrounds/ts
 
-            - uses: actions/setup-node@v4.0.2
+            - uses: actions/setup-node@v4.0.3
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "pnpm"
