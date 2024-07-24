@@ -609,10 +609,10 @@
 		"onStartupFinished"
 	],
 	"devDependencies": {
-		"@types/node": "18.14.6",
+		"@types/node": "20.14.12",
 		"esbuild": "0.23.0",
 		"merge-options": "3.0.4",
-		"rimraf": "5.0.5",
+		"rimraf": "6.0.1",
 		"shelljs": "0.8.5",
 		"ts-loader": "9.5.1"
 	},
