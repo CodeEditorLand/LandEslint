@@ -1,29 +1,4 @@
 {
-	"name": "vscode-eslint",
-	"displayName": "ESLint",
-	"description": "Integrates ESLint JavaScript into VS Code.",
-	"version": "3.0.13",
-	"author": "Microsoft Corporation",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-eslint.git"
-	},
-	"bugs": {
-		"url": "https://github.com/Microsoft/vscode-eslint/issues"
-	},
-	"publisher": "dbaeumer",
-	"icon": "eslint_icon.png",
-	"categories": [
-		"Programming Languages",
-		"Linters"
-	],
-	"keywords": [
-		"multi-root ready"
-	],
-	"engines": {
-		"vscode": "^1.90.0"
-	},
 	"activationEvents": [
 		"onStartupFinished"
 	],
