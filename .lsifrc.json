@@ -1,4 +1,0 @@
-{
-	"project": "./tsconfig.json",
-	"out": "vscode-eslint.lsif"
-}
