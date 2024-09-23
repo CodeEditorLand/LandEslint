@@ -1,6 +1,6 @@
 {
 	"devDependencies": {
-		"globals": "^15.0.0"
+		"globals": "15.9.0"
 	},
 	"name": "eslint9_rc_config"
 }
