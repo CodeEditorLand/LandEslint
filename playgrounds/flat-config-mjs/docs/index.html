@@ -1,0 +1,347 @@
+<!DOCTYPE html><html class="default" lang="en"><head><meta charset="utf-8"/><meta name="keywords" content="@playform/document"/><meta http-equiv="x-ua-compatible" content="IE=edge"/><title>eslint8_flat_config_mjs</title><meta name="description" content="Documentation for eslint8_flat_config_mjs"/><meta name="viewport" content="width=device-width, initial-scale=1"/><link rel="stylesheet" href="assets/style.css"/><link rel="stylesheet" href="assets/highlight.css"/><link rel="stylesheet" href="assets/custom.css"/><script defer src="assets/main.js"></script><script async src="assets/icons.js" id="tsd-icons-script"></script><script async src="assets/search.js" id="tsd-search-script"></script><script async src="assets/navigation.js" id="tsd-nav-script"></script></head><body><script>document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "os";document.body.style.display="none";setTimeout(() => app?app.showPage():document.body.style.removeProperty("display"),500)</script><header class="tsd-page-toolbar"><div class="tsd-toolbar-contents container"><div class="table-cell" id="tsd-search" data-base="."><div class="field"><label for="tsd-search-field" class="tsd-widget tsd-toolbar-icon search no-caption"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="assets/icons.svg#icon-search"></use></svg></label><input type="text" id="tsd-search-field" aria-label="Search"/></div><div class="field"><div id="tsd-toolbar-links"></div></div><ul class="results"><li class="state loading">Preparing search index...</li><li class="state failure">The search index is not available</li></ul><a href="index.html" class="title">eslint8_flat_config_mjs</a></div><div class="table-cell" id="tsd-widgets"><a href="#" class="tsd-widget tsd-toolbar-icon menu no-caption" data-toggle="menu" aria-label="Menu"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><use href="assets/icons.svg#icon-menu"></use></svg></a></div></div></header><div class="container container-main"><div class="col-content"><div class="tsd-page-title"><h2>eslint8_flat_config_mjs</h2></div><div class="tsd-panel tsd-typography"><a id="md:vs-code-eslint-extension" class="tsd-anchor"></a><h1 class="tsd-anchor-link">VS Code ESLint extension<a href="#md:vs-code-eslint-extension" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1><p><a href="https://dev.azure.com/vscode/vscode-eslint/_build?definitionId=51" target="_blank" class="external"><img src="https://dev.azure.com/vscode/vscode-eslint/_apis/build/status%2Fvscode-eslint?branchName=main" alt="Build Status"></a></p>
+<p>Integrates <a href="http://eslint.org/" target="_blank" class="external">ESLint</a> into VS Code. If you are new to ESLint check the <a href="http://eslint.org/" target="_blank" class="external">documentation</a>.</p>
+<p>The extension uses the ESLint library installed in the opened workspace folder. If the folder doesn't provide one the extension looks for a global install version. If you haven't installed ESLint either locally or globally do so by running <code>npm install eslint</code> in the workspace folder for a local install or <code>npm install -g eslint</code> for a global install.</p>
+<p>On new folders you might also need to create an <code>.eslintrc</code> configuration file. You can do this by either using the VS Code command <code>Create ESLint configuration</code> or by running the <code>eslint</code> command in a terminal with <a href="http://eslint.org/docs/user-guide/command-line-interface" target="_blank" class="external"><code>npx eslint --init</code></a>.</p>
+<a id="md:index" class="tsd-anchor"></a><h1 class="tsd-anchor-link">Index<a href="#md:index" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h1><ul>
+<li><a href="#md:release-notes">Release Notes</a></li>
+<li><a href="#md:settings-options">Settings Options</a></li>
+<li><a href="#md:settings-migration">Settings Migration</a></li>
+<li><a href="#md:commands">Commands</a></li>
+<li><a href="#md:using-the-extension-with-vs-codes-task-running">Using the extension with VS Code's task running</a></li>
+<li><a href="#md:using-eslint-to-validate-typescript-files">Using ESLint to validate TypeScript files</a></li>
+<li><a href="#md:eslint-6x">ESLint 6.x</a></li>
+</ul>
+<a id="md:release-notes" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Release Notes<a href="#md:release-notes" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>This section describes major releases and their improvements. For a detailed list of changes please refer to the <a href="media/CHANGELOG.md">change log</a>.</p>
+<p>From version 2.2.3 on forward odd minor or patch version numbers indicate an insider or pre-release. So versions <code>2.2.3</code>, <code>2.2.5</code> and <code>2.3.1</code> will all be pre-release versions. <code>2.2.10</code>, <code>2.4.10</code> and <code>3.0.0</code> will all be regular release versions.</p>
+<a id="md:version-3013---pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 3.0.13 - pre-release<a href="#md:version-3013---pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>move to latest LSP libraries</li>
+</ul>
+<a id="md:version-3011---pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 3.0.11 - pre-release<a href="#md:version-3011---pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>Enforcement of the validate setting. If the <code>eslint.validate</code> setting is specified only files in that list will be validated. For example, a setting of the form<pre><code><span class="hl-0">&quot;eslint.validate&quot;</span><span class="hl-1">: [</span><br/><span class="hl-1">    </span><span class="hl-0">&quot;javascript&quot;</span><br/><span class="hl-1">]</span>
+</code><button>Copy</button></pre>
+
+will only validate JavaScript files. This is comparable to providing extensions on the command line.</li>
+</ul>
+<a id="md:version-3010---release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 3.0.10 - release<a href="#md:version-3010---release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>Bump VS Code version to 1.90 to ensure NodeJS 20.</li>
+</ul>
+<a id="md:version-308---release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 3.0.8 - release<a href="#md:version-308---release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>same as pre-release</li>
+</ul>
+<a id="md:version-305---pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 3.0.5 - pre-release<a href="#md:version-305---pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>Support for the new ESLint flat config files has improved. The following changes have been implemented:
+<ul>
+<li>To use flat config files it is recommended to use ESLint version 8.57.0 or above.</li>
+<li>There is a new <code>eslint.useFlatConfig</code> setting which is honored by ESLint version 8.57.0 and above. If one of those versions is used, the extension adheres to the <a href="https://eslint.org/blog/2023/10/flat-config-rollout-plans/" target="_blank" class="external">ESLint Flat config rollout plan</a>. The setting has the same meaning as the environment variable <code>ESLINT_USE_FLAT_CONFIG</code>. That means:
+<ul>
+<li><em>8.57.0 &lt;= ESLint version &lt; 9.x</em>: setting is honored and defaults to false.</li>
+<li><em>9.0.0 &lt;= ESLint version &lt; 10.x</em>: settings is honored and defaults to true.</li>
+<li><em>10.0.0 &lt;= ESLint version</em>: setting is ignored. Flat configs are the default and can't be turned off.</li>
+</ul>
+</li>
+<li>The experimental settings <code>eslint.experimental.useFlatConfig</code> is deprecated and should only be used for ESLint versions &gt;= 8.21 &lt; 8.57.0.</li>
+</ul>
+</li>
+<li>Converted the server to use diagnostic pull instead of push.</li>
+<li>Files will be revalidated on focus gain.</li>
+<li>Add a command <code>ESLint: Revalidate all open files</code> to revalidate all open files.</li>
+<li>Probing support for <a href="https://github.com/microsoft/vscode-eslint/pull/1795" target="_blank" class="external">Astro</a>, <a href="https://github.com/microsoft/vscode-eslint/pull/1794" target="_blank" class="external">MDX</a> and <a href="https://github.com/microsoft/vscode-eslint/pull/1787" target="_blank" class="external">JSON</a></li>
+<li>Various <a href="https://github.com/microsoft/vscode-eslint/issues?q=is%3Aclosed+milestone%3A3.0.10" target="_blank" class="external">bug fixes</a></li>
+</ul>
+<a id="md:version-244" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.4.4<a href="#md:version-244" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>same as 2.4.3 - pre-release</li>
+</ul>
+<a id="md:version-243---pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.4.3 - pre-release<a href="#md:version-243---pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>various <a href="https://github.com/microsoft/vscode-eslint/milestone/74?closed=1" target="_blank" class="external">bug fixes</a></li>
+</ul>
+<a id="md:version-242" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.4.2<a href="#md:version-242" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>same as 2.4.1 pre-release.</li>
+</ul>
+<a id="md:version-241---pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.4.1 - Pre-release<a href="#md:version-241---pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>various <a href="https://github.com/microsoft/vscode-eslint/milestone/51?closed=1" target="_blank" class="external">bug fixes</a></li>
+</ul>
+<a id="md:version-240-same-as-235---pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.4.0 (same as 2.3.5 - Pre-release)<a href="#md:version-240-same-as-235---pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>added settings options to control the time budget for validation and fix on save before a
+warning or error is raised. The settings are <code>eslint.timeBudget.onValidation</code> and <code>eslint.timeBudget.onFixes</code></li>
+<li>make server <code>untitled</code> agnostic</li>
+<li>the extension uses now VS Code's language status indicator</li>
+<li>the language status indicator now informs about long linting or fix on save times.</li>
+<li>the setting <code>eslint.alwaysShowStatus</code> got removed since the status is now shown as a language status indicator.</li>
+<li>support for flat config files</li>
+<li>support for single problem underline.</li>
+<li>various <a href="https://github.com/microsoft/vscode-eslint/issues?q=is%3Aclosed+milestone%3A2.4.0" target="_blank" class="external">bug fixes</a></li>
+</ul>
+<a id="md:version-235---pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.3.5 - Pre-release<a href="#md:version-235---pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>added settings options to control the time budget for validation and fix on save before a
+warning or error is raised. The settings are <code>eslint.timeBudget.onValidation</code> and <code>eslint.timeBudget.onFixes</code></li>
+</ul>
+<a id="md:version-233---pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.3.3 - Pre-release<a href="#md:version-233---pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>make server <code>untitled</code> agnostic</li>
+</ul>
+<a id="md:version-231---pre-release-internal-only" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.3.1 - Pre-release (internal only)<a href="#md:version-231---pre-release-internal-only" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>the extension uses now VS Code's language status indicator</li>
+<li>the language status indicator now informs about long linting or fix on save times.</li>
+<li>the setting <code>eslint.alwaysShowStatus</code> got removed since the status is now shown as a language status indicator.</li>
+</ul>
+<a id="md:version-230---pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.3.0 - Pre-release<a href="#md:version-230---pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>support for flat config files</li>
+<li>support for single problem underline.</li>
+<li>various <a href="https://github.com/microsoft/vscode-eslint/issues?q=is%3Aclosed+milestone%3A2.4.0" target="_blank" class="external">bug fixes</a></li>
+</ul>
+<a id="md:version-226-same-as-225-pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.2.6 (same as 2.2.5 Pre-release)<a href="#md:version-226-same-as-225-pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>added support for validating single notebook document cells if the language is supported by ESLint</li>
+<li>various <a href="https://github.com/microsoft/vscode-eslint/milestone/47?closed=1" target="_blank" class="external">bug fixes</a></li>
+</ul>
+<a id="md:version-225---pre-release" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.2.5 - Pre-release<a href="#md:version-225---pre-release" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><ul>
+<li>added support for validating single notebook document cells if the language is supported by ESLint</li>
+<li>various <a href="https://github.com/microsoft/vscode-eslint/milestone/47?closed=1" target="_blank" class="external">bug fixes</a></li>
+</ul>
+<a id="md:version-220" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.2.0<a href="#md:version-220" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Added support for ESLint V8.0 Beta. To stay backwards compatible with eslint settings the version still uses the CLIEngine if available. However users can force the use of the new ESLint API using the setting <code>eslint.useESLintClass</code>. Beware that the ESLint npm module changed how options are interpreted. It also changed the names of certain options. If you used <code>eslint.options</code> to pass special options to the ESLint npm module you might need to adapt the setting to the new <a href="https://eslint.org/docs/developer-guide/nodejs-api#-new-eslintoptions" target="_blank" class="external">form</a>.</p>
+<a id="md:version-2122" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.1.22<a href="#md:version-2122" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Adapt VS Code's workspace trust model. As a consequence the custom dialog ESLint introduced in version <code>2.1.7</code> got removed. In addition the <code>off</code> value got added to the eslint rule customization support.</p>
+<a id="md:version-2120" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.1.20<a href="#md:version-2120" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Added support to customize the severity of eslint rules. See the new setting <code>eslint.rules.customizations</code>.</p>
+<a id="md:version-2118" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.1.18<a href="#md:version-2118" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>Asking for confirmation of the <code>eslint.nodePath</code> value revealed a setup where that value is defined separately on a workspace folder level although a multi workspace folder setup is open (e.g. a code-workspace file). These setups need to define the <code>eslint.nodePath</code> value in the corresponding <code>code-workspace</code> file and the extension now warns the user about it. Below an example of such a <code>code-workspace</code> file</p>
+<pre><code class="json"><span class="hl-1">{</span><br/><span class="hl-1">        </span><span class="hl-2">&quot;folders&quot;</span><span class="hl-1">: [</span><br/><span class="hl-1">                {</span><br/><span class="hl-1">                        </span><span class="hl-2">&quot;path&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;project-a&quot;</span><br/><span class="hl-1">                },</span><br/><span class="hl-1">                {</span><br/><span class="hl-1">                        </span><span class="hl-2">&quot;path&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;project-b&quot;</span><br/><span class="hl-1">                }</span><br/><span class="hl-1">        ],</span><br/><span class="hl-1">        </span><span class="hl-2">&quot;settings&quot;</span><span class="hl-1">: {</span><br/><span class="hl-1">                </span><span class="hl-2">&quot;eslint.nodePath&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;myCustomNodePath&quot;</span><br/><span class="hl-1">        }</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+<a id="md:version-2117" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.1.17<a href="#md:version-2117" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>To follow VS Code's model to confirm workspace local settings that impact code execution the two settings <code>eslint.runtime</code> and <code>eslint.nodePath</code> now need user confirmation if defined locally in a workspace folder or a workspace file. Users using these settings in those local scopes will see a notification reminding them of the confirmation need.</p>
+<p>The version also adds a command to restart the ESLint server.</p>
+<a id="md:version-2110" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.1.10<a href="#md:version-2110" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>The approval flow to allow the execution of a ESLint library got reworked. Its initial experience is now as follows:</p>
+<ul>
+<li>no modal dialog is shown when the ESLint extension tries to load an ESLint library for the first time and an approval is necessary. Instead the ESLint status bar item changes to <img src="media/eslint-status.png" alt="ESLint status icon"> indicating that the execution is currently block.</li>
+<li>if the active text editor content would be validated using ESLint, a problem at the top of the file is shown in addition.</li>
+</ul>
+<p>The execution of the ESLint library can be denied or approved using the following gestures:</p>
+<ul>
+<li>clicking on the status bar icon</li>
+<li>using the quick fix for the corresponding ESLint problem</li>
+<li>executing the command <code>ESLint: Manage Library Execution</code> from the command palette</li>
+</ul>
+<p>All gestures will open the following dialog:</p>
+<p><img src="media/eslint-dialog.png" alt="ESLint Dialog"></p>
+<p>The chosen action is then reflected in the ESLint status bar item in the following way:</p>
+<ul>
+<li><code>Allow</code> will prefix the status bar item with a check mark.</li>
+<li><code>Allow Everywhere</code> will prefix the status bar item with a double check mark.</li>
+<li><code>Deny</code> and <code>Disable</code> will prefix the status bar item with a blocked sign.</li>
+</ul>
+<p>You can manage our decisions using the following commands:</p>
+<ul>
+<li><code>ESLint: Manage Library Execution</code> will reopen above dialog</li>
+<li><code>ESLint: Reset Library Decisions</code> lets you reset previous decisions who have made.</li>
+</ul>
+<p>This release also addresses the vulnerability described in <a href="https://msrc.microsoft.com/update-guide/vulnerability/CVE-2021-27081" target="_blank" class="external">CVE-2021-27081</a>.</p>
+<a id="md:version-204" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Version 2.0.4<a href="#md:version-204" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>The 2.0.4 version of the extension contains the following major improvements:</p>
+<ul>
+<li>Improved TypeScript detection - As soon as TypeScript is correctly configured inside ESLint, you no longer need additional configuration through VS Code's <code>eslint.validate</code> setting. The same is true for HTML and Vue.js files.</li>
+<li>Glob working directory support - Projects that have a complex folder structure and need to customize the working directories via <code>eslint.workingDirectories</code> can now use glob patterns instead of listing every project folder. For example, <code>{ &quot;pattern&quot;: &quot;code-*&quot; }</code> will match all project folders starting with <code>code-</code>. In addition, the extension now changes the working directory by default. You can disable this feature with the new <code>!cwd</code> property.</li>
+<li>Formatter support: ESLint can now be used as a formatter. To enable this feature use the <code>eslint.format.enable</code> setting.</li>
+<li>Improved Auto Fix on Save - Auto Fix on Save is now part of VS Code's Code Action on Save infrastructure and computes all possible fixes in one round. It is customized via the <code>editor.codeActionsOnSave</code> setting. The setting supports the ESLint specific property <code>source.fixAll.eslint</code>. The extension also respects the generic property <code>source.fixAll</code>.</li>
+</ul>
+<p>The setting below turns on Auto Fix for all providers including ESLint:</p>
+<pre><code class="json"><span class="hl-1">    </span><span class="hl-0">&quot;editor.codeActionsOnSave&quot;</span><span class="hl-1">: {</span><br/><span class="hl-1">        </span><span class="hl-2">&quot;source.fixAll&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;explicit&quot;</span><br/><span class="hl-1">    }</span>
+</code><button type="button">Copy</button></pre>
+
+<p>In contrast, this configuration only turns it on for ESLint:</p>
+<pre><code class="json"><span class="hl-1">    </span><span class="hl-0">&quot;editor.codeActionsOnSave&quot;</span><span class="hl-1">: {</span><br/><span class="hl-1">        </span><span class="hl-2">&quot;source.fixAll.eslint&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;explicit&quot;</span><br/><span class="hl-1">    }</span>
+</code><button type="button">Copy</button></pre>
+
+<p>You can also selectively disable ESLint via:</p>
+<pre><code class="json"><span class="hl-1">    </span><span class="hl-0">&quot;editor.codeActionsOnSave&quot;</span><span class="hl-1">: {</span><br/><span class="hl-1">        </span><span class="hl-2">&quot;source.fixAll&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;explicit&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">        </span><span class="hl-2">&quot;source.fixAll.eslint&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;never&quot;</span><br/><span class="hl-1">    }</span>
+</code><button type="button">Copy</button></pre>
+
+<p>Also note that there is a time budget of 750ms to run code actions on save which might not be enough for large JavaScript / TypeScript file. You can increase the time budget using the <code>editor.codeActionsOnSaveTimeout</code> setting.</p>
+<p>The old <code>eslint.autoFixOnSave</code> setting is now deprecated and can safely be removed.</p>
+<a id="md:settings-options" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Settings Options<a href="#md:settings-options" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>If you are using an ESLint extension version &lt; 2.x then please refer to the settings options <a href="https://github.com/microsoft/vscode-eslint/blob/master/history/settings_1_9_x.md" target="_blank" class="external">here</a>.</p>
+<p>This extension contributes the following variables to the <a href="https://code.visualstudio.com/docs/customization/userandworkspace" target="_blank" class="external">settings</a>:</p>
+<ul>
+<li>
+<p><code>eslint.enable</code>: enable/disable ESLint for the workspace folder. Is enabled by default.</p>
+</li>
+<li>
+<p><code>eslint.debug</code>: enables ESLint's debug mode (same as --debug  command line option). Please see the ESLint output channel for the debug output. This options is very helpful to track down configuration and installation problems with ESLint since it provides verbose information about how ESLint is validating a file.</p>
+</li>
+<li>
+<p><code>eslint.lintTask.enable</code>: whether the extension contributes a lint task to lint a whole workspace folder.</p>
+</li>
+<li>
+<p><code>eslint.lintTask.options</code>: Command line options applied when running the task for linting the whole workspace (<a href="https://eslint.org/docs/user-guide/command-line-interface" target="_blank" class="external">https://eslint.org/docs/user-guide/command-line-interface</a>).
+An example to point to a custom <code>.eslintrc.json</code> file and a custom <code>.eslintignore</code> is:</p>
+<pre><code class="json"><span class="hl-1">{</span><br/><span class="hl-1">  </span><span class="hl-2">&quot;eslint.lintTask.options&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;-c C:/mydirectory/.eslintrc.json --ignore-path C:/mydirectory/.eslintignore .&quot;</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+</li>
+<li>
+<p>The old <code>eslint.packageManager</code> setting is now deprecated and can safely be removed. This controlled the package manager to be used to resolve the ESLint library. This has only an influence if the ESLint library is resolved globally. Valid values are <code>&quot;npm&quot;</code> or <code>&quot;yarn&quot;</code> or <code>&quot;pnpm&quot;</code>.</p>
+</li>
+<li>
+<p><code>eslint.options</code>: options to configure how ESLint is started using either the <a href="http://eslint.org/docs/developer-guide/nodejs-api#eslint-class" target="_blank" class="external">ESLint class API</a> or the <a href="http://eslint.org/docs/developer-guide/nodejs-api#cliengine" target="_blank" class="external">CLIEngine API</a>. The extension uses the ESLint class API if ESLint version 8 or higher is used or if ESLint version 7 is used and the setting <code>eslint.useESLintCLass</code> is set to true. In all other cases the CLIEngine API is used.
+An example to point to a custom <code>.eslintrc.json</code> file using the new ESLint API is:</p>
+<pre><code class="json"><span class="hl-1">{</span><br/><span class="hl-1">  </span><span class="hl-2">&quot;eslint.options&quot;</span><span class="hl-1">: { </span><span class="hl-2">&quot;overrideConfigFile&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;C:/mydirectory/.eslintrc.json&quot;</span><span class="hl-1"> }</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+<p>An example to point to a custom <code>.eslintrc.json</code> file using the old CLIEngine API is:</p>
+<pre><code class="json"><span class="hl-1">{</span><br/><span class="hl-1">  </span><span class="hl-2">&quot;eslint.options&quot;</span><span class="hl-1">: { </span><span class="hl-2">&quot;configFile&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;C:/mydirectory/.eslintrc.json&quot;</span><span class="hl-1"> }</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+</li>
+<li>
+<p><code>eslint.useESLintClass</code> (@since 2.2.0) - whether to use the ESLint class API even if the CLIEngine API is present. The setting is only honor when using ESLint version 7.x.</p>
+</li>
+<li>
+<p><code>eslint.run</code> - run the linter <code>onSave</code> or <code>onType</code>, default is <code>onType</code>.</p>
+</li>
+<li>
+<p><code>eslint.quiet</code> - ignore warnings.</p>
+</li>
+<li>
+<p><code>eslint.runtime</code> - use this setting to set the path of the node runtime to run ESLint under. <a href="https://github.com/microsoft/vscode-eslint/issues/1233#issuecomment-815521280" target="_blank" class="external">Use <code>&quot;node&quot;</code></a> if you want to use your default system version of node.</p>
+</li>
+<li>
+<p><code>eslint.execArgv</code> - use this setting to pass additional arguments to the node runtime like <code>--max_old_space_size=4096</code></p>
+</li>
+<li>
+<p><code>eslint.nodeEnv</code> - use this setting if an ESLint plugin or configuration needs <code>process.env.NODE_ENV</code> to be defined.</p>
+</li>
+<li>
+<p><code>eslint.nodePath</code> - use this setting if an installed ESLint package can't be detected, for example <code>/myGlobalNodePackages/node_modules</code>.</p>
+</li>
+<li>
+<p><code>eslint.probe</code> - an array for language identifiers for which the ESLint extension should be activated and should try to validate the file. If validation fails for probed languages the extension says silent. Defaults to <code>[&quot;javascript&quot;, &quot;javascriptreact&quot;, &quot;typescript&quot;, &quot;typescriptreact&quot;, &quot;html&quot;, &quot;vue&quot;, &quot;markdown&quot;]</code>.</p>
+</li>
+<li>
+<p><code>eslint.validate</code> - an array of language identifiers specifying the files for which validation is to be enforced. If specified only files with one of the language Ids specified will be validated. This is comparable to the <code>--ext</code> command line option. Defaults to <code>null</code>.</p>
+</li>
+<li>
+<p><code>eslint.format.enable</code>: enables ESLint as a formatter for validated files. Although you can also use the formatter on save using the setting <code>editor.formatOnSave</code> it is recommended to use the <code>editor.codeActionsOnSave</code> feature since it allows for better configurability.</p>
+</li>
+<li>
+<p><code>eslint.workingDirectories</code> - specifies how the working directories ESLint is using are computed. ESLint resolves configuration files (e.g. <code>eslintrc</code>, <code>.eslintignore</code>) relative to a working directory so it is important to configure this correctly. If executing ESLint in the terminal requires you to change the working directory in the terminal into a sub folder then it is usually necessary to tweak this setting. (see also <a href="https://eslint.org/docs/developer-guide/nodejs-api#eslint-class" target="_blank" class="external">ESLint class options#cwd</a>). Please also keep in mind that the <code>.eslintrc*</code> file is resolved considering the parent directories whereas the <code>.eslintignore</code> file is only honored in the current working directory. The following values can be used:</p>
+<ul>
+<li><code>[{ &quot;mode&quot;: &quot;location&quot; }]</code> (@since 2.0.0): instructs ESLint to uses the workspace folder location or the file location (if no workspace folder is open) as the working directory. This is the default and is the same strategy as used in older versions of the ESLint extension (1.9.x versions).</li>
+<li><code>[{ &quot;mode&quot;: &quot;auto&quot; }]</code> (@since 2.0.0): instructs ESLint to infer a working directory based on the location of <code>package.json</code>, <code>eslint.config.js</code>, <code>.eslintignore</code> and <code>.eslintrc*</code> files. This might work in many cases but can lead to unexpected results as well.</li>
+<li><code>string[]</code>: an array of working directories to use.
+Consider the following directory layout:<pre><code><span class="hl-3">root</span><span class="hl-1">/</span><br/><span class="hl-1">  </span><span class="hl-3">client</span><span class="hl-1">/</span><br/><span class="hl-1">    .</span><span class="hl-3">eslintrc</span><span class="hl-1">.</span><span class="hl-3">json</span><br/><span class="hl-1">    </span><span class="hl-3">client</span><span class="hl-1">.</span><span class="hl-3">js</span><br/><span class="hl-1">  </span><span class="hl-3">server</span><span class="hl-1">/</span><br/><span class="hl-1">    .</span><span class="hl-3">eslintignore</span><br/><span class="hl-1">    .</span><span class="hl-3">eslintrc</span><span class="hl-1">.</span><span class="hl-3">json</span><br/><span class="hl-1">    </span><span class="hl-3">server</span><span class="hl-1">.</span><span class="hl-3">js</span>
+</code><button>Copy</button></pre>
+
+Then using the setting:<pre><code class="javascript"><span class="hl-1">  </span><span class="hl-0">&quot;eslint.workingDirectories&quot;</span><span class="hl-1">: [ </span><span class="hl-0">&quot;./client&quot;</span><span class="hl-1">, </span><span class="hl-0">&quot;./server&quot;</span><span class="hl-1"> ]</span>
+</code><button type="button">Copy</button></pre>
+
+will validate files inside the server directory with the server directory as the current eslint working directory. Same for files in the client directory. The ESLint extension will also change the process's working directory to the provided directories. If this is not wanted a literal with the <code>!cwd</code> property can be used (e.g. <code>{ &quot;directory&quot;: &quot;./client&quot;, &quot;!cwd&quot;: true }</code>). This will use the client directory as the ESLint working directory but will not change the process`s working directory.</li>
+<li><code>[{ &quot;pattern&quot;: glob pattern }]</code> (@since 2.0.0): Allows to specify a pattern to detect the working directory. This is basically a short cut for listing every directory. If you have a mono repository with all your projects being below a packages folder you can use <code>{ &quot;pattern&quot;: &quot;./packages/*/&quot; }</code> to make all these folders working directories.</li>
+</ul>
+</li>
+<li>
+<p><code>eslint.codeAction.disableRuleComment</code> - object with properties:</p>
+<ul>
+<li><code>enable</code> - show disable lint rule in the quick fix menu. <code>true</code> by default.</li>
+<li><code>location</code> - choose to either add the <code>eslint-disable</code> comment on the <code>separateLine</code> or <code>sameLine</code>. <code>separateLine</code> is the default.
+Example:<pre><code class="json"><span class="hl-1">{ </span><span class="hl-2">&quot;enable&quot;</span><span class="hl-1">: </span><span class="hl-4">true</span><span class="hl-1">, </span><span class="hl-2">&quot;location&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;sameLine&quot;</span><span class="hl-1"> }</span>
+</code><button type="button">Copy</button></pre>
+
+</li>
+</ul>
+</li>
+<li>
+<p><code>eslint.codeAction.showDocumentation</code> - object with properties:</p>
+<ul>
+<li><code>enable</code> - show open lint rule documentation web page in the quick fix menu. <code>true</code> by default.</li>
+</ul>
+</li>
+<li>
+<p><code>eslint.codeActionsOnSave.mode</code> (@since 2.0.12) - controls which problems are fix when running code actions on save.</p>
+<ul>
+<li><code>all</code>: fixes all possible problems by revalidating the file's content. This executes the same code path as running eslint with the <code>--fix</code> option in the terminal and therefore can take some time. This is the default value.</li>
+<li><code>problems</code>: fixes only the currently known fixable problems as long as their textual edits are non-overlapping. This mode is a lot faster but very likely only fixes parts of the problems.</li>
+</ul>
+<p>Please note that if <code>eslint.codeActionsOnSave.mode</code> is set to <code>problems</code>, the <code>eslint.codeActionsOnSave.rules</code> is ignored.</p>
+</li>
+<li>
+<p><code>eslint.codeActionsOnSave.rules</code> (@since 2.2.0) - controls the rules which are taken into consideration during code action on save execution. If not specified all rules specified via the normal ESLint configuration mechanism are consider. An empty array results in no rules being considered. If the array contains more than one entry the order matters and the first match determines the rule's on / off state. This setting is only honored under the following cases:</p>
+<ul>
+<li><code>eslint.codeActionsOnSave.mode</code> has a different value than <code>problems</code></li>
+<li>the ESLint version used is either version 8 or higher or the version is 7.x and the setting <code>eslint.useESLintClass</code> is set to true (version &gt;= 8 || (version == 7.x &amp;&amp; eslint.useESLintClass)).</li>
+</ul>
+<p>In this example only semicolon related rules are considered:</p>
+<pre><code class="json"><span class="hl-0">&quot;eslint.codeActionsOnSave.rules&quot;</span><span class="hl-1">: [</span><br/><span class="hl-1">  </span><span class="hl-0">&quot;*semi*&quot;</span><br/><span class="hl-1">]</span>
+</code><button type="button">Copy</button></pre>
+
+<p>This example removes all TypeScript ESLint specific rules from the code action on save pass but keeps all other rules:</p>
+<pre><code class="json"><span class="hl-0">&quot;eslint.codeActionsOnSave.rules&quot;</span><span class="hl-1">: [</span><br/><span class="hl-1">  </span><span class="hl-0">&quot;!@typescript-eslint/*&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">  </span><span class="hl-0">&quot;*&quot;</span><br/><span class="hl-1">]</span>
+</code><button type="button">Copy</button></pre>
+
+<p>This example keeps the indent and semi rule from TypeScript ESLint, disables all other TypeScript ESLint rules and keeps the rest:</p>
+<pre><code class="json"><span class="hl-0">&quot;eslint.codeActionsOnSave.rules&quot;</span><span class="hl-1">: [</span><br/><span class="hl-1">    </span><span class="hl-0">&quot;@typescript-eslint/semi&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">&quot;@typescript-eslint/indent&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">&quot;!@typescript-eslint/*&quot;</span><span class="hl-1">,</span><br/><span class="hl-1">    </span><span class="hl-0">&quot;*&quot;</span><br/><span class="hl-1">]</span>
+</code><button type="button">Copy</button></pre>
+
+</li>
+<li>
+<p><code>eslint.rules.customizations</code> (@since 2.1.20) - force rules to report a different severity within VS Code compared to the project's true ESLint configuration. Contains these properties:</p>
+<ul>
+<li><code>&quot;rule</code>&quot;: Select on rules with names that match, factoring in asterisks as wildcards: <code>{ &quot;rule&quot;: &quot;no-*&quot;, &quot;severity&quot;: &quot;warn&quot; }</code>
+<ul>
+<li>Prefix the name with a <code>&quot;!&quot;</code> to target all rules that <em>don't</em> match the name: <code>{ &quot;rule&quot;: &quot;!no-*&quot;, &quot;severity&quot;: &quot;info&quot; }</code></li>
+</ul>
+</li>
+<li><code>&quot;severity&quot;</code>: Sets a new severity for matched rule(s), <code>&quot;downgrade&quot;</code>s them to a lower severity, <code>&quot;upgrade&quot;</code>s them to a higher severity, or <code>&quot;default&quot;</code>s them to their original severity</li>
+<li><code>&quot;fixable&quot;</code>: Select only autofixable rules: <code>{ &quot;rule&quot;: &quot;no-*&quot;, &quot;fixable&quot;: true, &quot;severity&quot;: &quot;info&quot; }</code></li>
+</ul>
+<p>In this example, all rules are overridden to warnings:</p>
+<pre><code class="json"><span class="hl-0">&quot;eslint.rules.customizations&quot;</span><span class="hl-1">: [</span><br/><span class="hl-1">  { </span><span class="hl-2">&quot;rule&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;*&quot;</span><span class="hl-1">, </span><span class="hl-2">&quot;severity&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;warn&quot;</span><span class="hl-1"> }</span><br/><span class="hl-1">]</span>
+</code><button type="button">Copy</button></pre>
+
+<p>In this example, <code>no-</code> rules are informative, other rules are downgraded, and <code>&quot;radix&quot;</code> is reset to default:</p>
+<pre><code class="json"><span class="hl-0">&quot;eslint.rules.customizations&quot;</span><span class="hl-1">: [</span><br/><span class="hl-1">  { </span><span class="hl-2">&quot;rule&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;no-*&quot;</span><span class="hl-1">, </span><span class="hl-2">&quot;severity&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;info&quot;</span><span class="hl-1"> },</span><br/><span class="hl-1">  { </span><span class="hl-2">&quot;rule&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;!no-*&quot;</span><span class="hl-1">, </span><span class="hl-2">&quot;severity&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;downgrade&quot;</span><span class="hl-1"> },</span><br/><span class="hl-1">  { </span><span class="hl-2">&quot;rule&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;radix&quot;</span><span class="hl-1">, </span><span class="hl-2">&quot;severity&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;default&quot;</span><span class="hl-1"> }</span><br/><span class="hl-1">]</span>
+</code><button type="button">Copy</button></pre>
+
+<p>In this example, all autofixable rules are overridden to info:</p>
+<pre><code class="json"><span class="hl-0">&quot;eslint.rules.customizations&quot;</span><span class="hl-1">: [</span><br/><span class="hl-1">  { </span><span class="hl-2">&quot;rule&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;*&quot;</span><span class="hl-1">, </span><span class="hl-2">&quot;fixable&quot;</span><span class="hl-1">: </span><span class="hl-4">true</span><span class="hl-1">, </span><span class="hl-2">&quot;severity&quot;</span><span class="hl-1">: </span><span class="hl-0">&quot;info&quot;</span><span class="hl-1"> }</span><br/><span class="hl-1">]</span>
+</code><button type="button">Copy</button></pre>
+
+</li>
+<li>
+<p><code>eslint.format.enable</code> (@since 2.0.0) - uses ESlint as a formatter for files that are validated by ESLint. If enabled please ensure to disable other formatters if you want to make this the default. A good way to do so is to add the following setting <code>&quot;[javascript]&quot;: { &quot;editor.defaultFormatter&quot;: &quot;dbaeumer.vscode-eslint&quot; }</code> for JavaScript. For TypeScript you need to add <code>&quot;[typescript]&quot;: { &quot;editor.defaultFormatter&quot;: &quot;dbaeumer.vscode-eslint&quot; }</code>.</p>
+</li>
+<li>
+<p><code>eslint.onIgnoredFiles</code> (@since 2.0.10): used to control whether warnings should be generated when trying to lint ignored files. Default is <code>off</code>. Can be set to <code>warn</code>.</p>
+</li>
+<li>
+<p><code>editor.codeActionsOnSave</code> (@since 2.0.0): this setting now supports an entry <code>source.fixAll.eslint</code>. If set to true all auto-fixable ESLint errors from all plugins will be fixed on save. You can also selectively enable and disabled specific languages using VS Code's language scoped settings. To disable <code>codeActionsOnSave</code> for HTML files use the following setting:</p>
+<pre><code class="json"><span class="hl-0">&quot;[html]&quot;</span><span class="hl-1">: {</span><br/><span class="hl-1">  </span><span class="hl-2">&quot;editor.codeActionsOnSave&quot;</span><span class="hl-1">: {</span><br/><span class="hl-1">    </span><span class="hl-2">&quot;source.fixAll.eslint&quot;</span><span class="hl-1">: </span><span class="hl-4">false</span><br/><span class="hl-1">  }</span><br/><span class="hl-1">}</span>
+</code><button type="button">Copy</button></pre>
+
+<p>The old <code>eslint.autoFixOnSave</code> setting is now deprecated and can safely be removed. Please also note that if you use ESLint as your default formatter you should turn off <code>editor.formatOnSave</code> when you have turned on <code>editor.codeActionsOnSave</code>. Otherwise you file gets fixed twice which in unnecessary.</p>
+</li>
+<li>
+<p><code>eslint.problems.shortenToSingleLine</code>: (@since 2.3.0) - Shortens the text spans of underlined problems to their first related line.</p>
+</li>
+<li>
+<p><code>eslint.experimental.useFlatConfig</code>: (@since 2.3.0) - Enables support of experimental Flat Config (aka eslint.config.js, supported by ESLint version 8.21 or later)</p>
+</li>
+<li>
+<p><code>eslint.timeBudget.onValidation</code> (@since 2.3.5) - controls the time budget that can be used for validation before a warning or an error is shown.</p>
+</li>
+<li>
+<p><code>eslint.timeBudget.onFixes</code> (@since 2.3.5) - controls the time budget that can be used to compute fixes before a warning or an error is shown.</p>
+</li>
+</ul>
+<a id="md:settings-migration" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Settings Migration<a href="#md:settings-migration" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>If the old <code>eslint.autoFixOnSave</code> option is set to true ESLint will prompt to convert it to the new <code>editor.codeActionsOnSave</code> format. If you want to avoid the migration you can respond in the dialog in the following ways:</p>
+<ul>
+<li>Not now: the setting will not be migrated by ESLint prompts again the next time you open the workspace</li>
+<li>Never migrate Settings: the settings migration will be disabled by changing the user setting <code>eslint.migration.2_x</code> to <code>off</code></li>
+</ul>
+<p>The migration can always be triggered manually using the command <code>ESLint: Migrate Settings</code></p>
+<a id="md:commands" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Commands:<a href="#md:commands" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>This extension contributes the following commands to the Command palette.</p>
+<ul>
+<li><code>Create '.eslintrc.json' file</code>: creates a new <code>.eslintrc.json</code> file.</li>
+<li><code>Fix all auto-fixable problems</code>: applies ESLint auto-fix resolutions to all fixable problems.</li>
+</ul>
+<a id="md:using-the-extension-with-vs-codes-task-running" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Using the extension with VS Code's task running<a href="#md:using-the-extension-with-vs-codes-task-running" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>The extension is linting an individual file only on typing. If you want to lint the whole workspace set <code>eslint.lintTask.enable</code> to <code>true</code> and the extension will also contribute the <code>eslint: lint whole folder</code> task. There is no need any more to define a custom task in <code>tasks.json</code>.</p>
+<a id="md:using-eslint-to-validate-typescript-files" class="tsd-anchor"></a><h2 class="tsd-anchor-link">Using ESLint to validate TypeScript files<a href="#md:using-eslint-to-validate-typescript-files" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>A great introduction on how to lint TypeScript using ESlint can be found in the <a href="https://github.com/typescript-eslint/typescript-eslint" target="_blank" class="external">TypeScript - ESLint</a>. Please make yourself familiar with the introduction before using the VS Code ESLint extension in a TypeScript setup. Especially make sure that you can validate TypeScript files successfully in a terminal using the <code>eslint</code> command.</p>
+<p>This project itself uses ESLint to validate its TypeScript files. So it can be used as a blueprint to get started.</p>
+<p>To avoid validation from any TSLint installation disable TSLint using <code>&quot;tslint.enable&quot;: false</code>.</p>
+<a id="md:mono-repository-setup" class="tsd-anchor"></a><h3 class="tsd-anchor-link">Mono repository setup<a href="#md:mono-repository-setup" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h3><p>As with JavaScript validating TypeScript in a mono repository requires that you tell the VS Code ESLint extension what the current working directories are. Use the <code>eslint.workingDirectories</code> setting to do so. For this repository the working directory setup looks as follows:</p>
+<pre><code class="json"><span class="hl-1">	</span><span class="hl-0">&quot;eslint.workingDirectories&quot;</span><span class="hl-1">: [ </span><span class="hl-0">&quot;./client&quot;</span><span class="hl-1">, </span><span class="hl-0">&quot;./server&quot;</span><span class="hl-1"> ]</span>
+</code><button type="button">Copy</button></pre>
+
+<a id="md:eslint-6x" class="tsd-anchor"></a><h2 class="tsd-anchor-link">ESLint 6.x<a href="#md:eslint-6x" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="assets/icons.svg#icon-anchor"></use></svg></a></h2><p>Migrating from ESLint 5.x to ESLint 6.x might need some adaption (see the <a href="https://eslint.org/docs/user-guide/migrating-to-6.0.0" target="_blank" class="external">ESLint Migration Guide</a> for details). Before filing an issue against the VS Code ESLint extension please ensure that you can successfully validate your files in a terminal using the eslint command.</p>
+</div></div><div class="col-sidebar"><div class="page-menu"><div class="tsd-navigation settings"><details class="tsd-accordion"><summary class="tsd-accordion-summary"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="assets/icons.svg#icon-chevronDown"></use></svg>Settings</h3></summary><div class="tsd-accordion-details"><div class="tsd-filter-visibility"><span class="settings-label">Member Visibility</span><ul id="tsd-filter-options"><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-protected" name="protected"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Protected</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-inherited" name="inherited" checked/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>Inherited</span></label></li><li class="tsd-filter-item"><label class="tsd-filter-input"><input type="checkbox" id="tsd-filter-external" name="external"/><svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect class="tsd-checkbox-background" width="30" height="30" x="1" y="1" rx="6" fill="none"></rect><path class="tsd-checkbox-checkmark" d="M8.35422 16.8214L13.2143 21.75L24.6458 10.25" stroke="none" stroke-width="3.5" stroke-linejoin="round" fill="none"></path></svg><span>External</span></label></li></ul></div><div class="tsd-theme-toggle"><label class="settings-label" for="tsd-theme">Theme</label><select id="tsd-theme"><option value="os">OS</option><option value="light">Light</option><option value="dark">Dark</option></select></div></div></details></div><details open class="tsd-accordion tsd-page-navigation"><summary class="tsd-accordion-summary"><h3><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><use href="assets/icons.svg#icon-chevronDown"></use></svg>On This Page</h3></summary><div class="tsd-accordion-details"><a href="#md:vs-code-eslint-extension"><span>VS <wbr/>Code ESLint extension</span></a><a href="#md:index"><span>Index</span></a><ul><li><a href="#md:release-notes"><span>Release <wbr/>Notes</span></a></li><li><ul><li><a href="#md:version-3013---pre-release"><span>Version 3.0.13 -<wbr/> pre-<wbr/>release</span></a></li><li><a href="#md:version-3011---pre-release"><span>Version 3.0.11 -<wbr/> pre-<wbr/>release</span></a></li><li><a href="#md:version-3010---release"><span>Version 3.0.10 -<wbr/> release</span></a></li><li><a href="#md:version-308---release"><span>Version 3.0.8 -<wbr/> release</span></a></li><li><a href="#md:version-305---pre-release"><span>Version 3.0.5 -<wbr/> pre-<wbr/>release</span></a></li><li><a href="#md:version-244"><span>Version 2.4.4</span></a></li><li><a href="#md:version-243---pre-release"><span>Version 2.4.3 -<wbr/> pre-<wbr/>release</span></a></li><li><a href="#md:version-242"><span>Version 2.4.2</span></a></li><li><a href="#md:version-241---pre-release"><span>Version 2.4.1 -<wbr/> <wbr/>Pre-<wbr/>release</span></a></li><li><a href="#md:version-240-same-as-235---pre-release"><span>Version 2.4.0 (same as 2.3.5 -<wbr/> <wbr/>Pre-<wbr/>release)</span></a></li><li><a href="#md:version-235---pre-release"><span>Version 2.3.5 -<wbr/> <wbr/>Pre-<wbr/>release</span></a></li><li><a href="#md:version-233---pre-release"><span>Version 2.3.3 -<wbr/> <wbr/>Pre-<wbr/>release</span></a></li><li><a href="#md:version-231---pre-release-internal-only"><span>Version 2.3.1 -<wbr/> <wbr/>Pre-<wbr/>release (internal only)</span></a></li><li><a href="#md:version-230---pre-release"><span>Version 2.3.0 -<wbr/> <wbr/>Pre-<wbr/>release</span></a></li><li><a href="#md:version-226-same-as-225-pre-release"><span>Version 2.2.6 (same as 2.2.5 <wbr/>Pre-<wbr/>release)</span></a></li><li><a href="#md:version-225---pre-release"><span>Version 2.2.5 -<wbr/> <wbr/>Pre-<wbr/>release</span></a></li><li><a href="#md:version-220"><span>Version 2.2.0</span></a></li><li><a href="#md:version-2122"><span>Version 2.1.22</span></a></li><li><a href="#md:version-2120"><span>Version 2.1.20</span></a></li><li><a href="#md:version-2118"><span>Version 2.1.18</span></a></li><li><a href="#md:version-2117"><span>Version 2.1.17</span></a></li><li><a href="#md:version-2110"><span>Version 2.1.10</span></a></li><li><a href="#md:version-204"><span>Version 2.0.4</span></a></li></ul></li><li><a href="#md:settings-options"><span>Settings <wbr/>Options</span></a></li><li><a href="#md:settings-migration"><span>Settings <wbr/>Migration</span></a></li><li><a href="#md:commands"><span>Commands:</span></a></li><li><a href="#md:using-the-extension-with-vs-codes-task-running"><span>Using the extension with VS <wbr/>Code&#39;s task running</span></a></li><li><a href="#md:using-eslint-to-validate-typescript-files"><span>Using ESLint to validate <wbr/>Type<wbr/>Script files</span></a></li><li><ul><li><a href="#md:mono-repository-setup"><span>Mono repository setup</span></a></li></ul></li><li><a href="#md:eslint-6x"><span>ESLint 6.x</span></a></li></ul></div></details></div><div class="site-menu"><nav class="tsd-navigation"><a href="modules.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="assets/icons.svg#icon-1"></use></svg><span>eslint8_flat_config_mjs</span></a><ul class="tsd-small-nested-navigation" id="tsd-nav-container" data-base="."><li>Loading...</li></ul></nav></div></div></div><footer><p class="tsd-generator">Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p></footer><div class="overlay"></div></body></html>
