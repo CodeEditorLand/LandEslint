@@ -1,8 +1,8 @@
-const globals = require('globals');
+const globals = require("globals");
 
 module.exports = [
 	{
-		ignores: ['dist/**']
+		ignores: ["dist/**"],
 	},
 	{
 		files: ["**/*.js"],
@@ -12,8 +12,8 @@ module.exports = [
 				...globals.browser,
 				...globals.node,
 				...globals.es6,
-				...globals.commonjs
-			}
+				...globals.commonjs,
+			},
 		},
 		rules: {
 			"no-use-before-define": "error",
@@ -30,18 +30,15 @@ module.exports = [
 			"no-console": [
 				2,
 				{
-					"allow": [
-						"warn",
-						"error"
-					]
-				}
+					"allow": ["warn", "error"],
+				},
 			],
 			"eqeqeq": [
 				"error",
 				"always",
 				{
-					"null": "ignore"
-				}
+					"null": "ignore",
+				},
 			],
 			"indent": [
 				"warn",
@@ -50,12 +47,12 @@ module.exports = [
 					"VariableDeclarator": {
 						"var": 2,
 						"let": 2,
-						"const": 3
+						"const": 3,
 					},
 					"MemberExpression": 1,
-					"SwitchCase": 1
-				}
-			]
-		}
-	}
-]
+					"SwitchCase": 1,
+				},
+			],
+		},
+	},
+];
