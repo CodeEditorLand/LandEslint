@@ -1,5 +1,5 @@
 export function main(): number {
-	let s: string = '';
+	let s: string = "";
 	if (s == "") {
 		return 0;
 	}

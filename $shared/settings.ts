@@ -3,9 +3,7 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import {
-	WorkspaceFolder
-} from 'vscode-languageserver-protocol';
+import { WorkspaceFolder } from "vscode-languageserver-protocol";
 
 namespace Is {
 	const toString = Object.prototype.toString;
@@ -15,21 +13,21 @@ namespace Is {
 	}
 
 	export function string(value: any): value is string {
-		return toString.call(value) === '[object String]';
+		return toString.call(value) === "[object String]";
 	}
 }
 
 export enum Validate {
-	on = 'on',
-	off = 'off',
-	probe = 'probe'
+	on = "on",
+	off = "off",
+	probe = "probe",
 }
 
 export type CodeActionSettings = {
 	disableRuleComment: {
 		enable: boolean;
-		location: 'separateLine' | 'sameLine';
-		commentStyle: 'line' | 'block';
+		location: "separateLine" | "sameLine";
+		commentStyle: "line" | "block";
 	};
 	showDocumentation: {
 		enable: boolean;
@@ -37,16 +35,18 @@ export type CodeActionSettings = {
 };
 
 export enum CodeActionsOnSaveMode {
-	all = 'all',
-	problems = 'problems'
+	all = "all",
+	problems = "problems",
 }
 
 export namespace CodeActionsOnSaveMode {
-	export function from(value: string | undefined | null): CodeActionsOnSaveMode {
+	export function from(
+		value: string | undefined | null,
+	): CodeActionsOnSaveMode {
 		if (value === undefined || value === null || !Is.string(value)) {
 			return CodeActionsOnSaveMode.all;
 		}
-		switch(value.toLowerCase()) {
+		switch (value.toLowerCase()) {
 			case CodeActionsOnSaveMode.problems:
 				return CodeActionsOnSaveMode.problems;
 			default:
@@ -56,11 +56,13 @@ export namespace CodeActionsOnSaveMode {
 }
 
 export namespace CodeActionsOnSaveRules {
-	export function from(value: string[] | undefined | null): string[] | undefined {
+	export function from(
+		value: string[] | undefined | null,
+	): string[] | undefined {
 		if (value === undefined || value === null || !Array.isArray(value)) {
 			return undefined;
 		}
-		return value.filter(item => Is.string(item));
+		return value.filter((item) => Is.string(item));
 	}
 }
 
@@ -70,9 +72,9 @@ export type CodeActionsOnSaveSettings = {
 };
 
 export enum ESLintSeverity {
-	off = 'off',
-	warn = 'warn',
-	error = 'error'
+	off = "off",
+	warn = "warn",
+	error = "error",
 }
 
 export namespace ESLintSeverity {
@@ -95,15 +97,15 @@ export namespace ESLintSeverity {
 
 export enum RuleSeverity {
 	// Original ESLint values
-	info = 'info',
-	warn = 'warn',
-	error = 'error',
-	off = 'off',
+	info = "info",
+	warn = "warn",
+	error = "error",
+	off = "off",
 
 	// Added severity override changes
-	default = 'default',
-	downgrade = 'downgrade',
-	upgrade = 'upgrade'
+	default = "default",
+	downgrade = "downgrade",
+	upgrade = "upgrade",
 }
 
 export type RuleCustomization = {
@@ -113,11 +115,11 @@ export type RuleCustomization = {
 	fixable?: boolean;
 };
 
-export type RunValues = 'onType' | 'onSave';
+export type RunValues = "onType" | "onSave";
 
 export enum ModeEnum {
-	auto = 'auto',
-	location = 'location'
+	auto = "auto",
+	location = "location",
 }
 
 export namespace ModeEnum {
@@ -139,17 +141,21 @@ export namespace ModeItem {
 
 export type DirectoryItem = {
 	directory: string;
-	'!cwd'?: boolean;
+	"!cwd"?: boolean;
 };
 
 export namespace DirectoryItem {
 	export function is(item: any): item is DirectoryItem {
 		const candidate = item as DirectoryItem;
-		return candidate && Is.string(candidate.directory) && (Is.boolean(candidate['!cwd']) || candidate['!cwd'] === undefined);
+		return (
+			candidate &&
+			Is.string(candidate.directory) &&
+			(Is.boolean(candidate["!cwd"]) || candidate["!cwd"] === undefined)
+		);
 	}
 }
 
-export type PackageManagers = 'npm' | 'yarn' | 'pnpm';
+export type PackageManagers = "npm" | "yarn" | "pnpm";
 
 export type ESLintOptions = object & { fixTypes?: string[] };
 

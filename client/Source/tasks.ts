@@ -3,39 +3,43 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as vscode from 'vscode';
-import { Disposable } from 'vscode-languageclient';
+import * as vscode from "vscode";
+import { Disposable } from "vscode-languageclient";
 
-import { findEslint } from './node-utils';
+import { findEslint } from "./node-utils";
 
 /**
  * A special task definition for ESLint tasks
  */
-interface EslintTaskDefinition extends vscode.TaskDefinition {
-}
-
+interface EslintTaskDefinition extends vscode.TaskDefinition {}
 
 class FolderTaskProvider {
-	constructor(private _workspaceFolder: vscode.WorkspaceFolder) {
-	}
+	constructor(private _workspaceFolder: vscode.WorkspaceFolder) {}
 
 	public get workspaceFolder(): vscode.WorkspaceFolder {
 		return this._workspaceFolder;
 	}
 
 	public isEnabled(): boolean {
-		const config = vscode.workspace.getConfiguration('eslint', this._workspaceFolder.uri);
-		return config.get<boolean>('lintTask.enable', false) ?? config.get<boolean>('provideLintTask', false);
+		const config = vscode.workspace.getConfiguration(
+			"eslint",
+			this._workspaceFolder.uri,
+		);
+		return (
+			config.get<boolean>("lintTask.enable", false) ??
+			config.get<boolean>("provideLintTask", false)
+		);
 	}
 
-	public start(): void {
-	}
+	public start(): void {}
 
-	public dispose(): void {
-	}
+	public dispose(): void {}
 
 	public async getTask(): Promise<vscode.Task | undefined> {
-		const rootPath = this._workspaceFolder.uri.scheme === 'file' ? this._workspaceFolder.uri.fsPath : undefined;
+		const rootPath =
+			this._workspaceFolder.uri.scheme === "file"
+				? this._workspaceFolder.uri.fsPath
+				: undefined;
 		if (!rootPath) {
 			return undefined;
 		}
@@ -43,16 +47,27 @@ class FolderTaskProvider {
 			const command = await findEslint(rootPath);
 
 			const kind: EslintTaskDefinition = {
-				type: 'eslint'
+				type: "eslint",
 			};
 
-			const options: vscode.ShellExecutionOptions = { cwd: this.workspaceFolder.uri.fsPath };
-			const config = vscode.workspace.getConfiguration('eslint', this._workspaceFolder.uri);
-			const lintTaskOptions= config.get<string>('lintTask.options', '.');
+			const options: vscode.ShellExecutionOptions = {
+				cwd: this.workspaceFolder.uri.fsPath,
+			};
+			const config = vscode.workspace.getConfiguration(
+				"eslint",
+				this._workspaceFolder.uri,
+			);
+			const lintTaskOptions = config.get<string>("lintTask.options", ".");
 			return new vscode.Task(
-				kind, this.workspaceFolder,
-				'lint whole folder', 'eslint', new vscode.ShellExecution(`${command} ${lintTaskOptions}`, options),
-				'$eslint-stylish'
+				kind,
+				this.workspaceFolder,
+				"lint whole folder",
+				"eslint",
+				new vscode.ShellExecution(
+					`${command} ${lintTaskOptions}`,
+					options,
+				),
+				"$eslint-stylish",
 			);
 		} catch (error) {
 			return undefined;
@@ -64,7 +79,6 @@ class FolderTaskProvider {
  * A task provider that adds ESLint checking tasks.
  */
 export class TaskProvider {
-
 	/**
 	 * A Disposable to unregister the task provider inside
 	 * VS Code.
@@ -92,8 +106,17 @@ export class TaskProvider {
 		}
 
 		const disposables: vscode.Disposable[] = [];
-		disposables.push(vscode.workspace.onDidChangeWorkspaceFolders((event) => this.updateWorkspaceFolders(event.added, event.removed)));
-		disposables.push(vscode.workspace.onDidChangeConfiguration(this.updateConfiguration, this));
+		disposables.push(
+			vscode.workspace.onDidChangeWorkspaceFolders((event) =>
+				this.updateWorkspaceFolders(event.added, event.removed),
+			),
+		);
+		disposables.push(
+			vscode.workspace.onDidChangeConfiguration(
+				this.updateConfiguration,
+				this,
+			),
+		);
 		this.disposable = vscode.Disposable.from(...disposables);
 	}
 
@@ -112,7 +135,10 @@ export class TaskProvider {
 	/**
 	 * The workspace folders have changed.
 	 */
-	private updateWorkspaceFolders(added: ReadonlyArray<vscode.WorkspaceFolder>, removed: ReadonlyArray<vscode.WorkspaceFolder>): void {
+	private updateWorkspaceFolders(
+		added: ReadonlyArray<vscode.WorkspaceFolder>,
+		removed: ReadonlyArray<vscode.WorkspaceFolder>,
+	): void {
 		for (const remove of removed) {
 			const provider = this.providers.get(remove.uri.toString());
 			if (provider) {
@@ -157,13 +183,13 @@ export class TaskProvider {
 
 	private updateProvider(): void {
 		if (!this.taskProvider && this.providers.size > 0) {
-			this.taskProvider = vscode.tasks.registerTaskProvider('eslint', {
+			this.taskProvider = vscode.tasks.registerTaskProvider("eslint", {
 				provideTasks: () => {
 					return this.getTasks();
 				},
 				resolveTask(_task: vscode.Task): vscode.Task | undefined {
 					return undefined;
-				}
+				},
 			});
 		} else if (this.taskProvider && this.providers.size === 0) {
 			this.taskProvider.dispose();
@@ -180,7 +206,9 @@ export class TaskProvider {
 				promises.push(provider.getTask());
 			}
 			const values = await Promise.all(promises);
-			return values.filter<vscode.Task>((value): value is vscode.Task => { return value !== undefined; });
+			return values.filter<vscode.Task>((value): value is vscode.Task => {
+				return value !== undefined;
+			});
 		}
 	}
 }
