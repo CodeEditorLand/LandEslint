@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 //@ts-check
-const esbuild = require('esbuild');
+const esbuild = require("esbuild");
 
 /**
  * @typedef {import('esbuild').BuildOptions} BuildOptions
@@ -12,26 +12,26 @@ const esbuild = require('esbuild');
 /** @type BuildOptions */
 const clientOptions = {
 	bundle: true,
-	external: ['vscode'],
-	target: 'ES2022',
-	platform: 'node',
+	external: ["vscode"],
+	target: "ES2022",
+	platform: "node",
 	sourcemap: false,
-	entryPoints: ['client/src/extension.ts'],
-	outfile: 'client/out/extension.js',
+	entryPoints: ["client/src/extension.ts"],
+	outfile: "client/out/extension.js",
 	preserveSymlinks: true,
-	format: 'cjs',
+	format: "cjs",
 };
 
 /** @type BuildOptions */
 const serverOptions = {
 	bundle: true,
-	target: 'ES2022',
-	platform: 'node',
+	target: "ES2022",
+	platform: "node",
 	sourcemap: false,
-	entryPoints: ['server/src/eslintServer.ts'],
-	outfile: 'server/out/eslintServer.js',
+	entryPoints: ["server/src/eslintServer.ts"],
+	outfile: "server/out/eslintServer.js",
 	preserveSymlinks: true,
-	format: 'cjs',
+	format: "cjs",
 };
 
 function createContexts() {
@@ -41,22 +41,31 @@ function createContexts() {
 	]);
 }
 
-createContexts().then(contexts => {
-	if (process.argv[2] === '--watch') {
-		const promises = [];
-		for (const context of contexts) {
-			promises.push(context.watch());
-		}
-		return Promise.all(promises).then(() => { return undefined; });
-	} else {
-		const promises = [];
-		for (const context of contexts) {
-			promises.push(context.rebuild());
-		}
-		Promise.all(promises).then(async () => {
+createContexts()
+	.then((contexts) => {
+		if (process.argv[2] === "--watch") {
+			const promises = [];
 			for (const context of contexts) {
-				await context.dispose();
+				promises.push(context.watch());
 			}
-		}).then(() => { return undefined; }).catch(console.error);
-	}
-}).catch(console.error);
+			return Promise.all(promises).then(() => {
+				return undefined;
+			});
+		} else {
+			const promises = [];
+			for (const context of contexts) {
+				promises.push(context.rebuild());
+			}
+			Promise.all(promises)
+				.then(async () => {
+					for (const context of contexts) {
+						await context.dispose();
+					}
+				})
+				.then(() => {
+					return undefined;
+				})
+				.catch(console.error);
+		}
+	})
+	.catch(console.error);
