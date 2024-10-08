@@ -1,6 +1,6 @@
 function bar() {
 	if (foo) {
-		let str = "hallo";
+		let str = 'hallo';
 		foo(str);
 	}
 	console.log("aha!");

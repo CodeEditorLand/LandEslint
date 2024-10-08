@@ -3,17 +3,12 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import {
-	NotificationType,
-	NotificationType0,
-	RequestType,
-	TextDocumentIdentifier,
-} from "vscode-languageserver-protocol";
+import { NotificationType, NotificationType0, RequestType, TextDocumentIdentifier } from 'vscode-languageserver-protocol';
 
 export enum Status {
 	ok = 1,
 	warn = 2,
-	error = 3,
+	error = 3
 }
 
 export type StatusParams = {
@@ -27,7 +22,7 @@ export type StatusParams = {
  * inform the client about server status changes.
  */
 export namespace StatusNotification {
-	export const method: "eslint/status" = "eslint/status";
+	export const method: 'eslint/status' = 'eslint/status';
 	export const type = new NotificationType<StatusParams>(method);
 }
 
@@ -36,7 +31,8 @@ export type NoConfigParams = {
 	document: TextDocumentIdentifier;
 };
 
-export type NoConfigResult = {};
+export type NoConfigResult = {
+};
 
 /**
  * The NoConfigRequest is sent from the server to the client to inform
@@ -44,17 +40,16 @@ export type NoConfigResult = {};
  * trying to lint a file.
  */
 export namespace NoConfigRequest {
-	export const method: "eslint/noConfig" = "eslint/noConfig";
-	export const type = new RequestType<NoConfigParams, NoConfigResult, void>(
-		method,
-	);
+	export const method: 'eslint/noConfig' = 'eslint/noConfig';
+	export const type = new RequestType<NoConfigParams, NoConfigResult, void>(method);
 }
 
 export type NoESLintLibraryParams = {
 	source: TextDocumentIdentifier;
 };
 
-export type NoESLintLibraryResult = {};
+export type NoESLintLibraryResult = {
+};
 
 /**
  * The NoESLintLibraryRequest is sent from the server to the client to
@@ -62,19 +57,16 @@ export type NoESLintLibraryResult = {};
  * to lint a file.
  */
 export namespace NoESLintLibraryRequest {
-	export const method: "eslint/noLibrary" = "eslint/noLibrary";
-	export const type = new RequestType<
-		NoESLintLibraryParams,
-		NoESLintLibraryResult,
-		void
-	>(method);
+	export const method: 'eslint/noLibrary' = 'eslint/noLibrary';
+	export const type = new RequestType<NoESLintLibraryParams, NoESLintLibraryResult, void>(method);
 }
 
 export type OpenESLintDocParams = {
 	url: string;
 };
 
-export type OpenESLintDocResult = {};
+export type OpenESLintDocResult = {
+};
 
 /**
  * The eslint/openDoc request is sent from the server to the client to
@@ -82,12 +74,8 @@ export type OpenESLintDocResult = {};
  * ESLint rule.
  */
 export namespace OpenESLintDocRequest {
-	export const method: "eslint/openDoc" = "eslint/openDoc";
-	export const type = new RequestType<
-		OpenESLintDocParams,
-		OpenESLintDocResult,
-		void
-	>(method);
+	export const method: 'eslint/openDoc' = 'eslint/openDoc';
+	export const type = new RequestType<OpenESLintDocParams, OpenESLintDocResult, void>(method);
 }
 
 export type ProbeFailedParams = {
@@ -101,7 +89,7 @@ export type ProbeFailedParams = {
  * anymore.
  */
 export namespace ProbeFailedRequest {
-	export const method: "eslint/probeFailed" = "eslint/probeFailed";
+	export const method: 'eslint/probeFailed' = 'eslint/probeFailed';
 	export const type = new RequestType<ProbeFailedParams, void, void>(method);
 }
 
@@ -110,9 +98,8 @@ export namespace ProbeFailedRequest {
  * the client to ask the client to reveal it's output channel.
  */
 export namespace ShowOutputChannel {
-	export const method: "eslint/showOutputChannel" =
-		"eslint/showOutputChannel";
-	export const type = new NotificationType0("eslint/showOutputChannel");
+	export const method: 'eslint/showOutputChannel' = 'eslint/showOutputChannel';
+	export const type = new NotificationType0('eslint/showOutputChannel');
 }
 
 /**
@@ -121,6 +108,6 @@ export namespace ShowOutputChannel {
  * The call was very likely made by an ESLint plugin.
  */
 export namespace ExitCalled {
-	export const method: "eslint/exitCalled" = "eslint/exitCalled";
+	export const method: 'eslint/exitCalled' = 'eslint/exitCalled';
 	export const type = new NotificationType<[number, string]>(method);
 }

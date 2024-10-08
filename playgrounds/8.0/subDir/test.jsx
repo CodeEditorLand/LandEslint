@@ -1,7 +1,5 @@
 function bar() {
-	if (foo) {
-		foo++;
-	}
+	if (foo) {foo++;}
 }
 
 function foo(x) {
