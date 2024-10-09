@@ -2,52 +2,85 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
-import * as path from 'path';
-import { EOL } from 'os';
-
+import { EOL } from "os";
+import * as path from "path";
+import { TextDocument } from "vscode-languageserver-textdocument";
 import {
-	createConnection, Diagnostic, Range, TextDocuments, TextDocumentSyncKind, TextEdit, Command, WorkspaceChange, VersionedTextDocumentIdentifier,
-	DidChangeConfigurationNotification,  CodeAction, CodeActionKind, Position, TextDocumentEdit, Message as LMessage, ResponseMessage as LResponseMessage,
-	uinteger, ServerCapabilities, NotebookDocuments, ProposedFeatures, ClientCapabilities, type FullDocumentDiagnosticReport, DocumentDiagnosticReportKind
-} from 'vscode-languageserver/node';
+	ClientCapabilities,
+	CodeAction,
+	CodeActionKind,
+	Command,
+	createConnection,
+	Diagnostic,
+	DidChangeConfigurationNotification,
+	DocumentDiagnosticReportKind,
+	Message as LMessage,
+	ResponseMessage as LResponseMessage,
+	NotebookDocuments,
+	Position,
+	ProposedFeatures,
+	Range,
+	ServerCapabilities,
+	TextDocumentEdit,
+	TextDocuments,
+	TextDocumentSyncKind,
+	TextEdit,
+	uinteger,
+	VersionedTextDocumentIdentifier,
+	WorkspaceChange,
+	type FullDocumentDiagnosticReport,
+} from "vscode-languageserver/node";
+import { URI } from "vscode-uri";
 
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import { URI } from 'vscode-uri';
-
+import { stringDiff } from "./diff";
 import {
-	ExitCalled, OpenESLintDocRequest, Status, StatusNotification
-} from './shared/customMessages';
-
-import { Validate, CodeActionsOnSaveMode } from './shared/settings';
-
+	CodeActions,
+	ConfigData,
+	ESLint,
+	FixableProblem,
+	Fixes,
+	Problem,
+	RuleMetaData,
+	RuleSeverities,
+	SaveRuleConfigs,
+	SuggestionsProblem,
+	TextDocumentSettings,
+} from "./eslint";
+import LanguageDefaults from "./languageDefaults";
+import { getFileSystemPath, getUri, isUNC } from "./paths";
 import {
-	CodeActions, ConfigData, ESLint, FixableProblem, Fixes, Problem, RuleMetaData, RuleSeverities,
-	SaveRuleConfigs, SuggestionsProblem, TextDocumentSettings,
-} from './eslint';
-
-import { getFileSystemPath, getUri, isUNC } from './paths';
-import { stringDiff } from './diff';
-import LanguageDefaults from './languageDefaults';
+	ExitCalled,
+	OpenESLintDocRequest,
+	Status,
+	StatusNotification,
+} from "./shared/customMessages";
+import { CodeActionsOnSaveMode, Validate } from "./shared/settings";
 
 // The connection to use. Code action requests get removed from the queue if
 // canceled.
-const connection: ProposedFeatures.Connection = createConnection(ProposedFeatures.all, {
-	connectionStrategy: {
-		cancelUndispatched: (message: LMessage) => {
-		// Code actions can safely be cancel on request.
-			if (LMessage.isRequest(message) && message.method === 'textDocument/codeAction') {
-				const response: LResponseMessage = {
-					jsonrpc: message.jsonrpc,
-					id: message.id,
-					result: null
-				};
-				return response;
-			}
-			return undefined;
-		}
+const connection: ProposedFeatures.Connection = createConnection(
+	ProposedFeatures.all,
+	{
+		connectionStrategy: {
+			cancelUndispatched: (message: LMessage) => {
+				// Code actions can safely be cancel on request.
+				if (
+					LMessage.isRequest(message) &&
+					message.method === "textDocument/codeAction"
+				) {
+					const response: LResponseMessage = {
+						jsonrpc: message.jsonrpc,
+						id: message.id,
+						result: null,
+					};
+					return response;
+				}
+				return undefined;
+			},
+		},
+		maxParallelism: 1,
 	},
-	maxParallelism: 1
-});
+);
 
 // Set when handling the initialize request.
 let clientCapabilities: ClientCapabilities;
@@ -61,7 +94,10 @@ const notebooks = new NotebookDocuments(documents);
 declare const __webpack_require__: typeof require;
 declare const __non_webpack_require__: typeof require;
 function loadNodeModule<T>(moduleName: string): T | undefined {
-	const r = typeof __webpack_require__ === 'function' ? __non_webpack_require__ : require;
+	const r =
+		typeof __webpack_require__ === "function"
+			? __non_webpack_require__
+			: require;
 	try {
 		return r(moduleName);
 	} catch (err: any) {
@@ -77,22 +113,25 @@ function loadNodeModule<T>(moduleName: string): T | undefined {
 // to the client.
 const nodeExit = process.exit;
 process.exit = ((code?: number): void => {
-	const stack = new Error('stack');
-	void connection.sendNotification(ExitCalled.type, [code ? code : 0, stack.stack]);
+	const stack = new Error("stack");
+	void connection.sendNotification(ExitCalled.type, [
+		code ? code : 0,
+		stack.stack,
+	]);
 	setTimeout(() => {
 		nodeExit(code);
 	}, 1000);
 }) as any;
 
 // Handling of uncaught exceptions hitting the event loop.
-process.on('uncaughtException', (error: any) => {
+process.on("uncaughtException", (error: any) => {
 	let message: string | undefined;
 	if (error) {
-		if (typeof error.stack === 'string') {
+		if (typeof error.stack === "string") {
 			message = error.stack;
-		} else if (typeof error.message === 'string') {
+		} else if (typeof error.message === "string") {
 			message = error.message;
-		} else if (typeof error === 'string') {
+		} else if (typeof error === "string") {
 			message = error;
 		}
 		if (message === undefined || message.length === 0) {
@@ -104,7 +143,7 @@ process.on('uncaughtException', (error: any) => {
 		}
 	}
 	// eslint-disable-next-line no-console
-	console.error('Uncaught exception received.');
+	console.error("Uncaught exception received.");
 	if (message) {
 		// eslint-disable-next-line no-console
 		console.error(message);
@@ -116,29 +155,38 @@ process.on('uncaughtException', (error: any) => {
  * cell document it uses the file path from the notebook with a corresponding
  * extension (e.g. TypeScript -> ts)
  */
-function inferFilePath(documentOrUri: string | TextDocument | URI | undefined): string | undefined {
+function inferFilePath(
+	documentOrUri: string | TextDocument | URI | undefined,
+): string | undefined {
 	if (!documentOrUri) {
 		return undefined;
 	}
 	const uri = getUri(documentOrUri);
-	if (uri.scheme === 'file') {
+	if (uri.scheme === "file") {
 		return getFileSystemPath(uri);
 	}
 
-	const notebookDocument = notebooks.findNotebookDocumentForCell(uri.toString());
-	if (notebookDocument !== undefined ) {
+	const notebookDocument = notebooks.findNotebookDocumentForCell(
+		uri.toString(),
+	);
+	if (notebookDocument !== undefined) {
 		const notebookUri = URI.parse(notebookDocument.uri);
-		if (notebookUri.scheme === 'file') {
+		if (notebookUri.scheme === "file") {
 			const filePath = getFileSystemPath(uri);
 			if (filePath !== undefined) {
 				const textDocument = documents.get(uri.toString());
 				if (textDocument !== undefined) {
-					const extension = LanguageDefaults.getExtension(textDocument.languageId);
+					const extension = LanguageDefaults.getExtension(
+						textDocument.languageId,
+					);
 					if (extension !== undefined) {
 						const extname = path.extname(filePath);
-						if (extname.length === 0 && filePath[0] === '.') {
+						if (extname.length === 0 && filePath[0] === ".") {
 							return `${filePath}.${extension}`;
-						} else if (extname.length > 0 && extname !== extension) {
+						} else if (
+							extname.length > 0 &&
+							extname !== extension
+						) {
 							return `${filePath.substring(0, filePath.length - extname.length)}.${extension}`;
 						}
 					}
@@ -167,22 +215,22 @@ function environmentChanged() {
 	SaveRuleConfigs.clear();
 	ESLint.clearFormatters();
 	connection.languages.diagnostics.refresh().catch(() => {
-		connection.console.error('Failed to refresh diagnostics');
+		connection.console.error("Failed to refresh diagnostics");
 	});
 }
 
 namespace CommandIds {
-	export const applySingleFix: string = 'eslint.applySingleFix';
-	export const applySuggestion: string = 'eslint.applySuggestion';
-	export const applySameFixes: string = 'eslint.applySameFixes';
-	export const applyAllFixes: string = 'eslint.applyAllFixes';
-	export const applyDisableLine: string = 'eslint.applyDisableLine';
-	export const applyDisableFile: string = 'eslint.applyDisableFile';
-	export const openRuleDoc: string = 'eslint.openRuleDoc';
+	export const applySingleFix: string = "eslint.applySingleFix";
+	export const applySuggestion: string = "eslint.applySuggestion";
+	export const applySameFixes: string = "eslint.applySameFixes";
+	export const applyAllFixes: string = "eslint.applyAllFixes";
+	export const applyDisableLine: string = "eslint.applyDisableLine";
+	export const applyDisableFile: string = "eslint.applyDisableFile";
+	export const openRuleDoc: string = "eslint.openRuleDoc";
 }
 
 connection.onInitialize((params, _cancel, progress) => {
-	progress.begin('Initializing ESLint Server');
+	progress.begin("Initializing ESLint Server");
 	const syncKind: TextDocumentSyncKind = TextDocumentSyncKind.Incremental;
 	clientCapabilities = params.capabilities;
 	progress.done();
@@ -192,13 +240,13 @@ connection.onInitialize((params, _cancel, progress) => {
 			change: syncKind,
 			willSaveWaitUntil: false,
 			save: {
-				includeText: false
-			}
+				includeText: false,
+			},
 		},
 		workspace: {
 			workspaceFolders: {
-				supported: true
-			}
+				supported: true,
+			},
 		},
 		executeCommandProvider: {
 			commands: [
@@ -209,18 +257,24 @@ connection.onInitialize((params, _cancel, progress) => {
 				CommandIds.applyDisableLine,
 				CommandIds.applyDisableFile,
 				CommandIds.openRuleDoc,
-			]
+			],
 		},
 		diagnosticProvider: {
-			identifier: 'eslint',
+			identifier: "eslint",
 			interFileDependencies: false,
-			workspaceDiagnostics: false
-		}
+			workspaceDiagnostics: false,
+		},
 	};
 
-	if (clientCapabilities.textDocument?.codeAction?.codeActionLiteralSupport?.codeActionKind.valueSet !== undefined) {
+	if (
+		clientCapabilities.textDocument?.codeAction?.codeActionLiteralSupport
+			?.codeActionKind.valueSet !== undefined
+	) {
 		capabilities.codeActionProvider = {
-			codeActionKinds: [CodeActionKind.QuickFix, `${CodeActionKind.SourceFixAll}.eslint`]
+			codeActionKinds: [
+				CodeActionKind.QuickFix,
+				`${CodeActionKind.SourceFixAll}.eslint`,
+			],
 		};
 	}
 
@@ -228,11 +282,17 @@ connection.onInitialize((params, _cancel, progress) => {
 });
 
 connection.onInitialized(() => {
-	if (clientCapabilities.workspace?.didChangeConfiguration?.dynamicRegistration === true) {
+	if (
+		clientCapabilities.workspace?.didChangeConfiguration
+			?.dynamicRegistration === true
+	) {
 		connection.onDidChangeConfiguration((_params) => {
 			environmentChanged();
 		});
-		void connection.client.register(DidChangeConfigurationNotification.type, undefined);
+		void connection.client.register(
+			DidChangeConfigurationNotification.type,
+			undefined,
+		);
 	}
 
 	if (clientCapabilities.workspace?.workspaceFolders === true) {
@@ -242,10 +302,9 @@ connection.onInitialized(() => {
 	}
 });
 
-
 const emptyDiagnosticResult: FullDocumentDiagnosticReport = {
 	kind: DocumentDiagnosticReportKind.Full,
-	items: []
+	items: [],
 };
 
 connection.languages.diagnostics.on(async (params) => {
@@ -255,17 +314,24 @@ connection.languages.diagnostics.on(async (params) => {
 	}
 
 	const settings = await ESLint.resolveSettings(document);
-	if (settings.validate !== Validate.on || !TextDocumentSettings.hasLibrary(settings)) {
+	if (
+		settings.validate !== Validate.on ||
+		!TextDocumentSettings.hasLibrary(settings)
+	) {
 		return emptyDiagnosticResult;
 	}
 	try {
 		const start = Date.now();
 		const diagnostics = await ESLint.validate(document, settings);
 		const timeTaken = Date.now() - start;
-		void connection.sendNotification(StatusNotification.type, { uri: document.uri, state: Status.ok, validationTime: timeTaken });
+		void connection.sendNotification(StatusNotification.type, {
+			uri: document.uri,
+			state: Status.ok,
+			validationTime: timeTaken,
+		});
 		return {
 			kind: DocumentDiagnosticReportKind.Full,
-			items: diagnostics
+			items: diagnostics,
 		};
 	} catch (err) {
 		// if an exception has occurred while validating clear all errors to ensure
@@ -279,10 +345,18 @@ connection.languages.diagnostics.on(async (params) => {
 				}
 			}
 			status = status || Status.error;
-			void connection.sendNotification(StatusNotification.type, { uri: document.uri, state: status });
+			void connection.sendNotification(StatusNotification.type, {
+				uri: document.uri,
+				state: status,
+			});
 		} else {
-			connection.console.info(ESLint.ErrorHandlers.getMessage(err, document));
-			void connection.sendNotification(StatusNotification.type, { uri: document.uri, state: Status.ok });
+			connection.console.info(
+				ESLint.ErrorHandlers.getMessage(err, document),
+			);
+			void connection.sendNotification(StatusNotification.type, {
+				uri: document.uri,
+				state: Status.ok,
+			});
 		}
 		return emptyDiagnosticResult;
 	}
@@ -298,26 +372,34 @@ connection.onDidChangeWatchedFiles(async (params) => {
 	RuleSeverities.clear();
 	SaveRuleConfigs.clear();
 
-	await Promise.all(params.changes.map(async (change) => {
-		const fsPath = inferFilePath(change.uri);
-		if (fsPath === undefined || fsPath.length === 0 || isUNC(fsPath)) {
-			return;
-		}
-		const dirname = path.dirname(fsPath);
-		if (dirname) {
-			const data = ESLint.ErrorHandlers.getConfigErrorReported(fsPath);
-			if (data !== undefined) {
-				const eslintClass = await ESLint.newClass(data.library, {}, data.settings);
-				try {
-					await eslintClass.lintText('', { filePath: path.join(dirname, '___test___.js') });
-					ESLint.ErrorHandlers.removeConfigErrorReported(fsPath);
-				} catch (error) {
+	await Promise.all(
+		params.changes.map(async (change) => {
+			const fsPath = inferFilePath(change.uri);
+			if (fsPath === undefined || fsPath.length === 0 || isUNC(fsPath)) {
+				return;
+			}
+			const dirname = path.dirname(fsPath);
+			if (dirname) {
+				const data =
+					ESLint.ErrorHandlers.getConfigErrorReported(fsPath);
+				if (data !== undefined) {
+					const eslintClass = await ESLint.newClass(
+						data.library,
+						{},
+						data.settings,
+					);
+					try {
+						await eslintClass.lintText("", {
+							filePath: path.join(dirname, "___test___.js"),
+						});
+						ESLint.ErrorHandlers.removeConfigErrorReported(fsPath);
+					} catch (error) {}
 				}
 			}
-		}
-	}));
+		}),
+	);
 	connection.languages.diagnostics.refresh().catch(() => {
-		connection.console.error('Failed to refresh diagnostics');
+		connection.console.error("Failed to refresh diagnostics");
 	});
 });
 
@@ -388,7 +470,6 @@ class CodeActionResult {
 }
 
 class Changes {
-
 	private readonly values: Map<string, WorkspaceChange>;
 	private uri: string | undefined;
 	private version: number | undefined;
@@ -430,10 +511,21 @@ interface CommandParams extends VersionedTextDocumentIdentifier {
 }
 
 namespace CommandParams {
-	export function create(textDocument: TextDocument, ruleId?: string, sequence?: number): CommandParams {
-		return { uri: textDocument.uri, version: textDocument.version, ruleId, sequence };
+	export function create(
+		textDocument: TextDocument,
+		ruleId?: string,
+		sequence?: number,
+	): CommandParams {
+		return {
+			uri: textDocument.uri,
+			version: textDocument.version,
+			ruleId,
+			sequence,
+		};
 	}
-	export function hasRuleId(value: CommandParams): value is CommandParams & { ruleId: string } {
+	export function hasRuleId(
+		value: CommandParams,
+	): value is CommandParams & { ruleId: string } {
 		return value.ruleId !== undefined;
 	}
 }
@@ -450,33 +542,39 @@ connection.onCodeAction(async (params) => {
 		return result.all();
 	}
 
-	function createCodeAction(title: string, kind: string, commandId: string, arg: CommandParams, diagnostic?: Diagnostic): CodeAction {
+	function createCodeAction(
+		title: string,
+		kind: string,
+		commandId: string,
+		arg: CommandParams,
+		diagnostic?: Diagnostic,
+	): CodeAction {
 		const command = Command.create(title, commandId, arg);
-		const action = CodeAction.create(
-			title,
-			command,
-			kind
-		);
+		const action = CodeAction.create(title, command, kind);
 		if (diagnostic !== undefined) {
 			action.diagnostics = [diagnostic];
 		}
 		return action;
 	}
 
-	function getDisableRuleEditInsertionIndex(line: string, commentTags: string | [string, string]): number {
-		let charIndex = line.indexOf('--');
+	function getDisableRuleEditInsertionIndex(
+		line: string,
+		commentTags: string | [string, string],
+	): number {
+		let charIndex = line.indexOf("--");
 
 		if (charIndex < 0) {
-			if (typeof commentTags === 'string') {
+			if (typeof commentTags === "string") {
 				return line.length;
-			} else { // commentTags is an array containing the block comment closing and opening tags
+			} else {
+				// commentTags is an array containing the block comment closing and opening tags
 				charIndex = line.indexOf(commentTags[1]);
-				while (charIndex > 0 && line[charIndex - 1] === ' ') {
+				while (charIndex > 0 && line[charIndex - 1] === " ") {
 					charIndex--;
 				}
 			}
 		} else {
-			while (charIndex > 1 && line[charIndex - 1] === ' ') {
+			while (charIndex > 1 && line[charIndex - 1] === " ") {
 				charIndex--;
 			}
 		}
@@ -489,78 +587,149 @@ connection.onCodeAction(async (params) => {
 	 * See also: https://github.com/microsoft/vscode-eslint/issues/1610
 	 */
 	function escapeStringRegexp(value: string) {
-		return value.replace(/[|{}\\()[\]^$+*?.]/g, '\\$&');
+		return value.replace(/[|{}\\()[\]^$+*?.]/g, "\\$&");
 	}
 
-	function createDisableLineTextEdit(textDocument: TextDocument, editInfo: Problem, indentationText: string): TextEdit {
-		const lineComment = LanguageDefaults.getLineComment(textDocument.languageId);
-		const blockComment = LanguageDefaults.getBlockComment(textDocument.languageId);
+	function createDisableLineTextEdit(
+		textDocument: TextDocument,
+		editInfo: Problem,
+		indentationText: string,
+	): TextEdit {
+		const lineComment = LanguageDefaults.getLineComment(
+			textDocument.languageId,
+		);
+		const blockComment = LanguageDefaults.getBlockComment(
+			textDocument.languageId,
+		);
 
 		// If the concerned line is not the first line of the file
 		if (editInfo.line - 1 > 0) {
 			// Check previous line if there is a eslint-disable-next-line comment already present.
-			const prevLine = textDocument.getText(Range.create(Position.create(editInfo.line - 2, 0), Position.create(editInfo.line - 2, uinteger.MAX_VALUE)));
+			const prevLine = textDocument.getText(
+				Range.create(
+					Position.create(editInfo.line - 2, 0),
+					Position.create(editInfo.line - 2, uinteger.MAX_VALUE),
+				),
+			);
 
 			// For consistency, we ignore the settings here and use the comment style from that
 			// specific line.
-			const matchedLineDisable = new RegExp(`${escapeStringRegexp(lineComment)} eslint-disable-next-line`).test(prevLine);
+			const matchedLineDisable = new RegExp(
+				`${escapeStringRegexp(lineComment)} eslint-disable-next-line`,
+			).test(prevLine);
 			if (matchedLineDisable) {
-				const insertionIndex = getDisableRuleEditInsertionIndex(prevLine, lineComment);
-				return TextEdit.insert(Position.create(editInfo.line - 2, insertionIndex), `, ${editInfo.ruleId}`);
+				const insertionIndex = getDisableRuleEditInsertionIndex(
+					prevLine,
+					lineComment,
+				);
+				return TextEdit.insert(
+					Position.create(editInfo.line - 2, insertionIndex),
+					`, ${editInfo.ruleId}`,
+				);
 			}
 
-			const matchedBlockDisable = new RegExp(`${escapeStringRegexp(blockComment[0])} eslint-disable-next-line`).test(prevLine);
+			const matchedBlockDisable = new RegExp(
+				`${escapeStringRegexp(blockComment[0])} eslint-disable-next-line`,
+			).test(prevLine);
 			if (matchedBlockDisable) {
-				const insertionIndex = getDisableRuleEditInsertionIndex(prevLine, blockComment);
-				return TextEdit.insert(Position.create(editInfo.line - 2, insertionIndex), `, ${editInfo.ruleId}`);
+				const insertionIndex = getDisableRuleEditInsertionIndex(
+					prevLine,
+					blockComment,
+				);
+				return TextEdit.insert(
+					Position.create(editInfo.line - 2, insertionIndex),
+					`, ${editInfo.ruleId}`,
+				);
 			}
 		}
 
 		// We're creating a new disabling comment. Use the comment style given in settings.
-		const commentStyle = settings.codeAction.disableRuleComment.commentStyle;
+		const commentStyle =
+			settings.codeAction.disableRuleComment.commentStyle;
 		let disableRuleContent: string;
-		if (commentStyle === 'block') {
+		if (commentStyle === "block") {
 			disableRuleContent = `${indentationText}${blockComment[0]} eslint-disable-next-line ${editInfo.ruleId} ${blockComment[1]}${EOL}`;
-		} else { // commentStyle === 'line'
+		} else {
+			// commentStyle === 'line'
 			disableRuleContent = `${indentationText}${lineComment} eslint-disable-next-line ${editInfo.ruleId}${EOL}`;
 		}
 
-		return TextEdit.insert(Position.create(editInfo.line - 1, 0), disableRuleContent);
+		return TextEdit.insert(
+			Position.create(editInfo.line - 1, 0),
+			disableRuleContent,
+		);
 	}
 
-	function createDisableSameLineTextEdit(textDocument: TextDocument, editInfo: Problem): TextEdit {
-		const lineComment = LanguageDefaults.getLineComment(textDocument.languageId);
-		const blockComment = LanguageDefaults.getBlockComment(textDocument.languageId);
-		const currentLine = textDocument.getText(Range.create(Position.create(editInfo.line - 1, 0), Position.create(editInfo.line - 1, uinteger.MAX_VALUE)));
+	function createDisableSameLineTextEdit(
+		textDocument: TextDocument,
+		editInfo: Problem,
+	): TextEdit {
+		const lineComment = LanguageDefaults.getLineComment(
+			textDocument.languageId,
+		);
+		const blockComment = LanguageDefaults.getBlockComment(
+			textDocument.languageId,
+		);
+		const currentLine = textDocument.getText(
+			Range.create(
+				Position.create(editInfo.line - 1, 0),
+				Position.create(editInfo.line - 1, uinteger.MAX_VALUE),
+			),
+		);
 		let disableRuleContent: string;
 		let insertionIndex: number;
 
 		// Check if there's already a disabling comment. If so, we ignore the settings here
 		// and use the comment style from that specific line.
-		const matchedLineDisable = new RegExp(`${lineComment} eslint-disable-line`).test(currentLine);
-		const matchedBlockDisable = new RegExp(`${blockComment[0]} eslint-disable-line`).test(currentLine);
+		const matchedLineDisable = new RegExp(
+			`${lineComment} eslint-disable-line`,
+		).test(currentLine);
+		const matchedBlockDisable = new RegExp(
+			`${blockComment[0]} eslint-disable-line`,
+		).test(currentLine);
 		if (matchedLineDisable) {
 			disableRuleContent = `, ${editInfo.ruleId}`;
-			insertionIndex = getDisableRuleEditInsertionIndex(currentLine, lineComment);
+			insertionIndex = getDisableRuleEditInsertionIndex(
+				currentLine,
+				lineComment,
+			);
 		} else if (matchedBlockDisable) {
 			disableRuleContent = `, ${editInfo.ruleId}`;
-			insertionIndex = getDisableRuleEditInsertionIndex(currentLine, blockComment);
+			insertionIndex = getDisableRuleEditInsertionIndex(
+				currentLine,
+				blockComment,
+			);
 		} else {
 			// We're creating a new disabling comment.
-			const commentStyle = settings.codeAction.disableRuleComment.commentStyle;
-			disableRuleContent = commentStyle === 'line' ? ` ${lineComment} eslint-disable-line ${editInfo.ruleId}` : ` ${blockComment[0]} eslint-disable-line ${editInfo.ruleId} ${blockComment[1]}`;
+			const commentStyle =
+				settings.codeAction.disableRuleComment.commentStyle;
+			disableRuleContent =
+				commentStyle === "line"
+					? ` ${lineComment} eslint-disable-line ${editInfo.ruleId}`
+					: ` ${blockComment[0]} eslint-disable-line ${editInfo.ruleId} ${blockComment[1]}`;
 			insertionIndex = uinteger.MAX_VALUE;
 		}
 
-		return TextEdit.insert(Position.create(editInfo.line - 1, insertionIndex), disableRuleContent);
+		return TextEdit.insert(
+			Position.create(editInfo.line - 1, insertionIndex),
+			disableRuleContent,
+		);
 	}
 
-	function createDisableFileTextEdit(textDocument: TextDocument, editInfo: Problem): TextEdit {
+	function createDisableFileTextEdit(
+		textDocument: TextDocument,
+		editInfo: Problem,
+	): TextEdit {
 		// If first line contains a shebang, insert on the next line instead.
-		const shebang = textDocument.getText(Range.create(Position.create(0, 0), Position.create(0, 2)));
-		const line = shebang === '#!' ? 1 : 0;
+		const shebang = textDocument.getText(
+			Range.create(Position.create(0, 0), Position.create(0, 2)),
+		);
+		const line = shebang === "#!" ? 1 : 0;
 		const block = LanguageDefaults.getBlockComment(textDocument.languageId);
-		return TextEdit.insert(Position.create(line, 0), `${block[0]} eslint-disable ${editInfo.ruleId} ${block[1]}${EOL}`);
+		return TextEdit.insert(
+			Position.create(line, 0),
+			`${block[0]} eslint-disable ${editInfo.ruleId} ${block[1]}${EOL}`,
+		);
 	}
 
 	function getLastEdit(array: FixableProblem[]): FixableProblem | undefined {
@@ -574,37 +743,61 @@ connection.onCodeAction(async (params) => {
 	const settings = await ESLint.resolveSettings(textDocument);
 
 	// The file is not validated at all or we couldn't load an eslint library for it.
-	if (settings.validate !== Validate.on || !TextDocumentSettings.hasLibrary(settings)) {
+	if (
+		settings.validate !== Validate.on ||
+		!TextDocumentSettings.hasLibrary(settings)
+	) {
 		return result.all();
 	}
 
 	const problems = CodeActions.get(uri);
 	// We validate on type and have no problems ==> nothing to fix.
-	if (problems === undefined && settings.run === 'onType') {
+	if (problems === undefined && settings.run === "onType") {
 		return result.all();
 	}
 
-	const only: string | undefined = params.context.only !== undefined && params.context.only.length > 0 ? params.context.only[0] : undefined;
+	const only: string | undefined =
+		params.context.only !== undefined && params.context.only.length > 0
+			? params.context.only[0]
+			: undefined;
 	const isSource = only === CodeActionKind.Source;
-	const isSourceFixAll = (only === ESLintSourceFixAll || only === CodeActionKind.SourceFixAll);
+	const isSourceFixAll =
+		only === ESLintSourceFixAll || only === CodeActionKind.SourceFixAll;
 	if (isSourceFixAll || isSource) {
 		if (isSourceFixAll) {
-			const textDocumentIdentifier: VersionedTextDocumentIdentifier = { uri: textDocument.uri, version: textDocument.version };
-			const edits = await computeAllFixes(textDocumentIdentifier, AllFixesMode.onSave);
+			const textDocumentIdentifier: VersionedTextDocumentIdentifier = {
+				uri: textDocument.uri,
+				version: textDocument.version,
+			};
+			const edits = await computeAllFixes(
+				textDocumentIdentifier,
+				AllFixesMode.onSave,
+			);
 			if (edits !== undefined) {
-				result.fixAll.push(CodeAction.create(
-					`Fix all fixable ESLint issues`,
-					{ documentChanges: [ TextDocumentEdit.create(textDocumentIdentifier, edits )]},
-					ESLintSourceFixAll
-				));
+				result.fixAll.push(
+					CodeAction.create(
+						`Fix all fixable ESLint issues`,
+						{
+							documentChanges: [
+								TextDocumentEdit.create(
+									textDocumentIdentifier,
+									edits,
+								),
+							],
+						},
+						ESLintSourceFixAll,
+					),
+				);
 			}
 		} else if (isSource) {
-			result.fixAll.push(createCodeAction(
-				`Fix all fixable ESLint issues`,
-				CodeActionKind.Source,
-				CommandIds.applyAllFixes,
-				CommandParams.create(textDocument)
-			));
+			result.fixAll.push(
+				createCodeAction(
+					`Fix all fixable ESLint issues`,
+					CodeActionKind.Source,
+					CommandIds.applyAllFixes,
+					CommandParams.create(textDocument),
+				),
+			);
 		}
 		return result.all();
 	}
@@ -629,14 +822,19 @@ connection.onCodeAction(async (params) => {
 
 		if (Problem.isFixable(editInfo)) {
 			const workspaceChange = new WorkspaceChange();
-			workspaceChange.getTextEditChange({ uri, version: documentVersion }).add(FixableProblem.createTextEdit(textDocument, editInfo));
-			changes.set(`${CommandIds.applySingleFix}:${ruleId}`, workspaceChange);
+			workspaceChange
+				.getTextEditChange({ uri, version: documentVersion })
+				.add(FixableProblem.createTextEdit(textDocument, editInfo));
+			changes.set(
+				`${CommandIds.applySingleFix}:${ruleId}`,
+				workspaceChange,
+			);
 			const action = createCodeAction(
 				editInfo.label,
 				kind,
 				CommandIds.applySingleFix,
 				CommandParams.create(textDocument, ruleId),
-				editInfo.diagnostic
+				editInfo.diagnostic,
 			);
 			action.isPreferred = true;
 			result.get(ruleId).fixes.push(action);
@@ -644,64 +842,113 @@ connection.onCodeAction(async (params) => {
 		if (Problem.hasSuggestions(editInfo)) {
 			editInfo.suggestions.forEach((suggestion, suggestionSequence) => {
 				const workspaceChange = new WorkspaceChange();
-				workspaceChange.getTextEditChange({ uri, version: documentVersion }).add(SuggestionsProblem.createTextEdit(textDocument, suggestion));
-				changes.set(`${CommandIds.applySuggestion}:${ruleId}:${suggestionSequence}`, workspaceChange);
+				workspaceChange
+					.getTextEditChange({ uri, version: documentVersion })
+					.add(
+						SuggestionsProblem.createTextEdit(
+							textDocument,
+							suggestion,
+						),
+					);
+				changes.set(
+					`${CommandIds.applySuggestion}:${ruleId}:${suggestionSequence}`,
+					workspaceChange,
+				);
 				const action = createCodeAction(
 					`${suggestion.desc} (${editInfo.ruleId})`,
 					CodeActionKind.QuickFix,
 					CommandIds.applySuggestion,
-					CommandParams.create(textDocument, ruleId, suggestionSequence),
-					editInfo.diagnostic
+					CommandParams.create(
+						textDocument,
+						ruleId,
+						suggestionSequence,
+					),
+					editInfo.diagnostic,
 				);
 				result.get(ruleId).suggestions.push(action);
 			});
 		}
 
-		if (settings.codeAction.disableRuleComment.enable && ruleId !== RuleMetaData.unusedDisableDirectiveId) {
+		if (
+			settings.codeAction.disableRuleComment.enable &&
+			ruleId !== RuleMetaData.unusedDisableDirectiveId
+		) {
 			let workspaceChange = new WorkspaceChange();
-			if (settings.codeAction.disableRuleComment.location === 'sameLine') {
-				workspaceChange.getTextEditChange({ uri, version: documentVersion }).add(createDisableSameLineTextEdit(textDocument, editInfo));
+			if (
+				settings.codeAction.disableRuleComment.location === "sameLine"
+			) {
+				workspaceChange
+					.getTextEditChange({ uri, version: documentVersion })
+					.add(createDisableSameLineTextEdit(textDocument, editInfo));
 			} else {
-				const lineText = textDocument.getText(Range.create(Position.create(editInfo.line - 1, 0), Position.create(editInfo.line - 1, uinteger.MAX_VALUE)));
+				const lineText = textDocument.getText(
+					Range.create(
+						Position.create(editInfo.line - 1, 0),
+						Position.create(editInfo.line - 1, uinteger.MAX_VALUE),
+					),
+				);
 				const matches = /^([ \t]*)/.exec(lineText);
-				const indentationText = matches !== null && matches.length > 0 ? matches[1] : '';
-				workspaceChange.getTextEditChange({ uri, version: documentVersion }).add(createDisableLineTextEdit(textDocument, editInfo, indentationText));
+				const indentationText =
+					matches !== null && matches.length > 0 ? matches[1] : "";
+				workspaceChange
+					.getTextEditChange({ uri, version: documentVersion })
+					.add(
+						createDisableLineTextEdit(
+							textDocument,
+							editInfo,
+							indentationText,
+						),
+					);
 			}
-			changes.set(`${CommandIds.applyDisableLine}:${ruleId}`, workspaceChange);
+			changes.set(
+				`${CommandIds.applyDisableLine}:${ruleId}`,
+				workspaceChange,
+			);
 			result.get(ruleId).disable = createCodeAction(
 				`Disable ${ruleId} for this line`,
 				kind,
 				CommandIds.applyDisableLine,
-				CommandParams.create(textDocument, ruleId)
+				CommandParams.create(textDocument, ruleId),
 			);
 
 			if (result.get(ruleId).disableFile === undefined) {
 				workspaceChange = new WorkspaceChange();
-				workspaceChange.getTextEditChange({ uri, version: documentVersion }).add(createDisableFileTextEdit(textDocument, editInfo));
-				changes.set(`${CommandIds.applyDisableFile}:${ruleId}`, workspaceChange);
+				workspaceChange
+					.getTextEditChange({ uri, version: documentVersion })
+					.add(createDisableFileTextEdit(textDocument, editInfo));
+				changes.set(
+					`${CommandIds.applyDisableFile}:${ruleId}`,
+					workspaceChange,
+				);
 				result.get(ruleId).disableFile = createCodeAction(
 					`Disable ${ruleId} for the entire file`,
 					kind,
 					CommandIds.applyDisableFile,
-					CommandParams.create(textDocument, ruleId)
+					CommandParams.create(textDocument, ruleId),
 				);
 			}
 		}
 
-		if (settings.codeAction.showDocumentation.enable && result.get(ruleId).showDocumentation === undefined) {
+		if (
+			settings.codeAction.showDocumentation.enable &&
+			result.get(ruleId).showDocumentation === undefined
+		) {
 			if (RuleMetaData.hasRuleId(ruleId)) {
 				result.get(ruleId).showDocumentation = createCodeAction(
 					`Show documentation for ${ruleId}`,
 					kind,
 					CommandIds.openRuleDoc,
-					CommandParams.create(textDocument, ruleId)
+					CommandParams.create(textDocument, ruleId),
 				);
 			}
 		}
 	}
 
 	if (result.length > 0) {
-		const sameProblems: Map<string, FixableProblem[]> = new Map<string, FixableProblem[]>(allFixableRuleIds.map<[string, FixableProblem[]]>(s => [s, []]));
+		const sameProblems: Map<string, FixableProblem[]> = new Map<
+			string,
+			FixableProblem[]
+		>(allFixableRuleIds.map<[string, FixableProblem[]]>((s) => [s, []]));
 
 		for (const editInfo of fixes.getAllSorted()) {
 			if (documentVersion === -1) {
@@ -717,43 +964,60 @@ connection.onCodeAction(async (params) => {
 		sameProblems.forEach((same, ruleId) => {
 			if (same.length > 1) {
 				const sameFixes: WorkspaceChange = new WorkspaceChange();
-				const sameTextChange = sameFixes.getTextEditChange({ uri, version: documentVersion });
-				same.map(fix => FixableProblem.createTextEdit(textDocument, fix)).forEach(edit => sameTextChange.add(edit));
+				const sameTextChange = sameFixes.getTextEditChange({
+					uri,
+					version: documentVersion,
+				});
+				same.map((fix) =>
+					FixableProblem.createTextEdit(textDocument, fix),
+				).forEach((edit) => sameTextChange.add(edit));
 				changes.set(CommandIds.applySameFixes, sameFixes);
 				result.get(ruleId).fixAll = createCodeAction(
 					`Fix all ${ruleId} problems`,
 					kind,
 					CommandIds.applySameFixes,
-					CommandParams.create(textDocument)
+					CommandParams.create(textDocument),
 				);
 			}
 		});
-		result.fixAll.push(createCodeAction(
-			`Fix all auto-fixable problems`,
-			kind,
-			CommandIds.applyAllFixes,
-			CommandParams.create(textDocument)
-		));
+		result.fixAll.push(
+			createCodeAction(
+				`Fix all auto-fixable problems`,
+				kind,
+				CommandIds.applyAllFixes,
+				CommandParams.create(textDocument),
+			),
+		);
 	}
 	return result.all();
 });
 
 enum AllFixesMode {
-	onSave = 'onsave',
-	format = 'format',
-	command = 'command'
+	onSave = "onsave",
+	format = "format",
+	command = "command",
 }
 
-async function computeAllFixes(identifier: VersionedTextDocumentIdentifier, mode: AllFixesMode): Promise<TextEdit[] | undefined> {
+async function computeAllFixes(
+	identifier: VersionedTextDocumentIdentifier,
+	mode: AllFixesMode,
+): Promise<TextEdit[] | undefined> {
 	const uri = identifier.uri;
 	const textDocument = documents.get(uri)!;
-	if (textDocument === undefined || identifier.version !== textDocument.version) {
+	if (
+		textDocument === undefined ||
+		identifier.version !== textDocument.version
+	) {
 		return undefined;
 	}
 
 	const settings = await ESLint.resolveSettings(textDocument);
 
-	if (settings.validate !== Validate.on || !TextDocumentSettings.hasLibrary(settings) || (mode === AllFixesMode.format && !settings.format)) {
+	if (
+		settings.validate !== Validate.on ||
+		!TextDocumentSettings.hasLibrary(settings) ||
+		(mode === AllFixesMode.format && !settings.format)
+	) {
 		return [];
 	}
 	const filePath = inferFilePath(textDocument);
@@ -762,45 +1026,86 @@ async function computeAllFixes(identifier: VersionedTextDocumentIdentifier, mode
 	let start = Date.now();
 	// Only use known fixes when running in onSave mode. See https://github.com/microsoft/vscode-eslint/issues/871
 	// for details
-	if (mode === AllFixesMode.onSave && settings.codeActionOnSave.mode === CodeActionsOnSaveMode.problems) {
-		const result = problems !== undefined && problems.size > 0
-			? new Fixes(problems).getApplicable().map(fix => FixableProblem.createTextEdit(textDocument, fix))
-			: [];
-		connection.tracer.log(`Computing all fixes took: ${Date.now() - start} ms.`);
+	if (
+		mode === AllFixesMode.onSave &&
+		settings.codeActionOnSave.mode === CodeActionsOnSaveMode.problems
+	) {
+		const result =
+			problems !== undefined && problems.size > 0
+				? new Fixes(problems)
+						.getApplicable()
+						.map((fix) =>
+							FixableProblem.createTextEdit(textDocument, fix),
+						)
+				: [];
+		connection.tracer.log(
+			`Computing all fixes took: ${Date.now() - start} ms.`,
+		);
 		return result;
 	} else {
-		const saveConfig = filePath !== undefined && mode === AllFixesMode.onSave ? await SaveRuleConfigs.get(uri, settings) : undefined;
+		const saveConfig =
+			filePath !== undefined && mode === AllFixesMode.onSave
+				? await SaveRuleConfigs.get(uri, settings)
+				: undefined;
 		const offRules = saveConfig?.offRules;
 		let overrideConfig: Required<ConfigData> | undefined;
 		if (offRules !== undefined) {
 			overrideConfig = { rules: Object.create(null) };
 			for (const ruleId of offRules) {
-				overrideConfig.rules[ruleId] = 'off';
+				overrideConfig.rules[ruleId] = "off";
 			}
 		}
-		return ESLint.withClass(async (eslintClass) => {
-			// Don't use any precomputed fixes since neighbour fixes can produce incorrect results.
-			// See https://github.com/microsoft/vscode-eslint/issues/1745
-			const result: TextEdit[] = [];
-			const reportResults = await eslintClass.lintText(originalContent, { filePath });
-			connection.tracer.log(`Computing all fixes took: ${Date.now() - start} ms.`);
-			if (Array.isArray(reportResults) && reportResults.length === 1 && reportResults[0].output !== undefined) {
-				const fixedContent = reportResults[0].output;
-				start = Date.now();
-				const diffs = stringDiff(originalContent, fixedContent, false);
-				connection.tracer.log(`Computing minimal edits took: ${Date.now() - start} ms.`);
-				for (const diff of diffs) {
-					result.push({
-						range: {
-							start: textDocument.positionAt(diff.originalStart),
-							end: textDocument.positionAt(diff.originalStart + diff.originalLength)
-						},
-						newText: fixedContent.substr(diff.modifiedStart, diff.modifiedLength)
-					});
+		return ESLint.withClass(
+			async (eslintClass) => {
+				// Don't use any precomputed fixes since neighbour fixes can produce incorrect results.
+				// See https://github.com/microsoft/vscode-eslint/issues/1745
+				const result: TextEdit[] = [];
+				const reportResults = await eslintClass.lintText(
+					originalContent,
+					{ filePath },
+				);
+				connection.tracer.log(
+					`Computing all fixes took: ${Date.now() - start} ms.`,
+				);
+				if (
+					Array.isArray(reportResults) &&
+					reportResults.length === 1 &&
+					reportResults[0].output !== undefined
+				) {
+					const fixedContent = reportResults[0].output;
+					start = Date.now();
+					const diffs = stringDiff(
+						originalContent,
+						fixedContent,
+						false,
+					);
+					connection.tracer.log(
+						`Computing minimal edits took: ${Date.now() - start} ms.`,
+					);
+					for (const diff of diffs) {
+						result.push({
+							range: {
+								start: textDocument.positionAt(
+									diff.originalStart,
+								),
+								end: textDocument.positionAt(
+									diff.originalStart + diff.originalLength,
+								),
+							},
+							newText: fixedContent.substr(
+								diff.modifiedStart,
+								diff.modifiedLength,
+							),
+						});
+					}
 				}
-			}
-			return result;
-		}, settings, overrideConfig !== undefined ? { fix: true, overrideConfig } : { fix: true });
+				return result;
+			},
+			settings,
+			overrideConfig !== undefined
+				? { fix: true, overrideConfig }
+				: { fix: true },
+		);
 	}
 }
 
@@ -808,18 +1113,36 @@ connection.onExecuteCommand(async (params) => {
 	let workspaceChange: WorkspaceChange | undefined;
 	const commandParams: CommandParams = params.arguments![0] as CommandParams;
 	if (params.command === CommandIds.applyAllFixes) {
-		const edits = await computeAllFixes(commandParams, AllFixesMode.command);
+		const edits = await computeAllFixes(
+			commandParams,
+			AllFixesMode.command,
+		);
 		if (edits !== undefined && edits.length > 0) {
 			workspaceChange = new WorkspaceChange();
 			const textChange = workspaceChange.getTextEditChange(commandParams);
-			edits.forEach(edit => textChange.add(edit));
+			edits.forEach((edit) => textChange.add(edit));
 		}
 	} else {
-		if ([CommandIds.applySingleFix, CommandIds.applyDisableLine, CommandIds.applyDisableFile].indexOf(params.command) !== -1) {
-			workspaceChange = changes.get(`${params.command}:${commandParams.ruleId}`);
-		} else if ([CommandIds.applySuggestion].indexOf(params.command) !== -1) {
-			workspaceChange = changes.get(`${params.command}:${commandParams.ruleId}:${commandParams.sequence}`);
-		} else if (params.command === CommandIds.openRuleDoc && CommandParams.hasRuleId(commandParams)) {
+		if (
+			[
+				CommandIds.applySingleFix,
+				CommandIds.applyDisableLine,
+				CommandIds.applyDisableFile,
+			].indexOf(params.command) !== -1
+		) {
+			workspaceChange = changes.get(
+				`${params.command}:${commandParams.ruleId}`,
+			);
+		} else if (
+			[CommandIds.applySuggestion].indexOf(params.command) !== -1
+		) {
+			workspaceChange = changes.get(
+				`${params.command}:${commandParams.ruleId}:${commandParams.sequence}`,
+			);
+		} else if (
+			params.command === CommandIds.openRuleDoc &&
+			CommandParams.hasRuleId(commandParams)
+		) {
 			const url = RuleMetaData.getUrl(commandParams.ruleId);
 			if (url) {
 				void connection.sendRequest(OpenESLintDocRequest.type, { url });
@@ -832,15 +1155,22 @@ connection.onExecuteCommand(async (params) => {
 	if (workspaceChange === undefined) {
 		return null;
 	}
-	return connection.workspace.applyEdit(workspaceChange.edit).then((response) => {
-		if (!response.applied) {
-			connection.console.error(`Failed to apply command: ${params.command}`);
-		}
-		return null;
-	}, () => {
-		connection.console.error(`Failed to apply command: ${params.command}`);
-		return null;
-	});
+	return connection.workspace.applyEdit(workspaceChange.edit).then(
+		(response) => {
+			if (!response.applied) {
+				connection.console.error(
+					`Failed to apply command: ${params.command}`,
+				);
+			}
+			return null;
+		},
+		() => {
+			connection.console.error(
+				`Failed to apply command: ${params.command}`,
+			);
+			return null;
+		},
+	);
 });
 
 connection.onDocumentFormatting((params) => {
@@ -848,9 +1178,11 @@ connection.onDocumentFormatting((params) => {
 	if (textDocument === undefined) {
 		return [];
 	}
-	return computeAllFixes({ uri: textDocument.uri, version: textDocument.version }, AllFixesMode.format);
+	return computeAllFixes(
+		{ uri: textDocument.uri, version: textDocument.version },
+		AllFixesMode.format,
+	);
 });
-
 
 documents.listen(connection);
 notebooks.listen(connection);

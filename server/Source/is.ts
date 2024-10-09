@@ -14,5 +14,5 @@ export function nullOrUndefined(value: any): value is null | undefined {
 }
 
 export function string(value: any): value is string {
-	return toString.call(value) === '[object String]';
+	return toString.call(value) === "[object String]";
 }

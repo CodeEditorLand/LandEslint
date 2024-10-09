@@ -1,6 +1,8 @@
 function bar() {
 	foo();
-	if (foo) {foo++;}
+	if (foo) {
+		foo++;
+	}
 }
 
 function foo(x) {

@@ -1,4 +1,4 @@
 {
-	"devDependencies": {},
-	"name": "eslint_ts"
+	"name": "eslint_ts",
+	"devDependencies": {}
 }

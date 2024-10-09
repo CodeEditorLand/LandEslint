@@ -3,12 +3,11 @@
  * Licensed under the MIT License. See License.txt in the project root for license information.
  * ------------------------------------------------------------------------------------------ */
 
-import * as fs from 'fs';
+import * as fs from "fs";
+import { TextDocument } from "vscode-languageserver-textdocument";
+import { URI } from "vscode-uri";
 
-import { URI } from 'vscode-uri';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-
-import * as Is from './is';
+import * as Is from "./is";
 
 /**
  * Special functions to deal with path conversions in the context of ESLint
@@ -19,7 +18,7 @@ import * as Is from './is';
  * VS Code.
  */
 export function normalizeDriveLetter(path: string): string {
-	if (process.platform !== 'win32' || path.length < 2 || path[1] !== ':') {
+	if (process.platform !== "win32" || path.length < 2 || path[1] !== ":") {
 		return path;
 	}
 	return path[0].toUpperCase() + path.substring(1);
@@ -40,7 +39,7 @@ const enum CharCode {
  * always false.
  */
 export function isUNC(path: string): boolean {
-	if (process.platform !== 'win32') {
+	if (process.platform !== "win32") {
 		// UNC is a windows concept
 		return false;
 	}
@@ -78,13 +77,17 @@ export function isUNC(path: string): boolean {
 
 export function getFileSystemPath(uri: URI): string {
 	let result = uri.fsPath;
-	if (process.platform === 'win32' && result.length >= 2 && result[1] === ':') {
+	if (
+		process.platform === "win32" &&
+		result.length >= 2 &&
+		result[1] === ":"
+	) {
 		// Node by default uses an upper case drive letter and ESLint uses
 		// === to compare paths which results in the equal check failing
 		// if the drive letter is lower case in th URI. Ensure upper case.
 		result = result[0].toUpperCase() + result.substr(1);
 	}
-	if (process.platform === 'win32' || process.platform === 'darwin') {
+	if (process.platform === "win32" || process.platform === "darwin") {
 		try {
 			const realpath = fs.realpathSync.native(result);
 			// Only use the real path if only the casing has changed.
@@ -106,8 +109,8 @@ export function normalizePath(path: string | undefined): string | undefined {
 	if (path === undefined) {
 		return undefined;
 	}
-	if (process.platform === 'win32') {
-		return path.replace(/\\/g, '/');
+	if (process.platform === "win32") {
+		return path.replace(/\\/g, "/");
 	}
 	return path;
 }
