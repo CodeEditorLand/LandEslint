@@ -389,9 +389,7 @@ export type ESLintModule =
 	  };
 
 export namespace ESLintModule {
-	export function hasLoadESLint(
-		value: ESLintModule,
-	): value is {
+	export function hasLoadESLint(value: ESLintModule): value is {
 		ESLint: ESLintClassConstructor;
 		CLIEngine: undefined;
 		loadESLint: (options?: {
@@ -411,9 +409,7 @@ export namespace ESLintModule {
 	): value is { ESLint: undefined; CLIEngine: CLIEngineConstructor } {
 		return value.CLIEngine !== undefined;
 	}
-	export function isFlatConfig(
-		value: ESLintModule,
-	): value is {
+	export function isFlatConfig(value: ESLintModule): value is {
 		ESLint: ESLintClassConstructor;
 		CLIEngine: undefined;
 		isFlatConfig: true;
