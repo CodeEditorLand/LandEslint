@@ -1,16 +1,17 @@
 {
-	"activationEvents": [
-		"onStartupFinished"
-	],
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"description": "The extension requires workspace trust because it loads configuration files and code from the workspace and executes it.",
-			"supported": false
-		},
-		"virtualWorkspaces": {
-			"description": "Using ESLint is not possible in virtual workspaces.",
-			"supported": false
-		}
+	"name": "vscode-eslint",
+	"displayName": "ESLint",
+	"description": "Integrates ESLint JavaScript into VS Code.",
+	"main": "./client/out/extension",
+	"scripts": {
+		"clean": "rimraf client/out && rimraf server/out",
+		"compile": "tsc -b",
+		"compile:client": "tsc -b ./client/tsconfig.json",
+		"compile:server": "tsc -b ./server/tsconfig.json",
+		"esbuild": "npm run clean && node ./esbuild.js",
+		"symlink:lsp": "node ./build/bin/symlink.js",
+		"webpack": "npm run clean && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js",
+		"webpack:dev": "npm run clean && webpack --mode none --config ./client/webpack.config.js && webpack --mode none --config ./server/webpack.config.js"
 	},
 	"contributes": {
 		"commands": [
@@ -604,7 +605,9 @@
 			}
 		]
 	},
-	"description": "Integrates ESLint JavaScript into VS Code.",
+	"activationEvents": [
+		"onStartupFinished"
+	],
 	"devDependencies": {
 		"@types/node": "22.9.1",
 		"esbuild": "0.24.0",
@@ -613,22 +616,19 @@
 		"shelljs": "0.8.5",
 		"ts-loader": "9.5.1"
 	},
-	"displayName": "ESLint",
+	"icon": "eslint_icon.png",
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"description": "The extension requires workspace trust because it loads configuration files and code from the workspace and executes it.",
+			"supported": false
+		},
+		"virtualWorkspaces": {
+			"description": "Using ESLint is not possible in virtual workspaces.",
+			"supported": false
+		}
+	},
 	"enabledApiProposals": [],
 	"extensionKind": [
 		"workspace"
-	],
-	"icon": "eslint_icon.png",
-	"main": "./client/out/extension",
-	"name": "vscode-eslint",
-	"scripts": {
-		"clean": "rimraf client/out && rimraf server/out",
-		"compile": "tsc -b",
-		"compile:client": "tsc -b ./client/tsconfig.json",
-		"compile:server": "tsc -b ./server/tsconfig.json",
-		"esbuild": "npm run clean && node ./esbuild.js",
-		"symlink:lsp": "node ./build/bin/symlink.js",
-		"webpack": "npm run clean && webpack --mode production --config ./client/webpack.config.js && webpack --mode production --config ./server/webpack.config.js",
-		"webpack:dev": "npm run clean && webpack --mode none --config ./client/webpack.config.js && webpack --mode none --config ./server/webpack.config.js"
-	}
+	]
 }
