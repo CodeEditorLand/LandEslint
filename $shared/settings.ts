@@ -49,6 +49,7 @@ export namespace CodeActionsOnSaveMode {
 		switch (value.toLowerCase()) {
 			case CodeActionsOnSaveMode.problems:
 				return CodeActionsOnSaveMode.problems;
+
 			default:
 				return CodeActionsOnSaveMode.all;
 		}
@@ -85,10 +86,13 @@ export namespace ESLintSeverity {
 		switch (value.toLowerCase()) {
 			case ESLintSeverity.off:
 				return ESLintSeverity.off;
+
 			case ESLintSeverity.warn:
 				return ESLintSeverity.warn;
+
 			case ESLintSeverity.error:
 				return ESLintSeverity.error;
+
 			default:
 				return ESLintSeverity.off;
 		}
@@ -135,6 +139,7 @@ export type ModeItem = {
 export namespace ModeItem {
 	export function is(item: any): item is ModeItem {
 		const candidate = item as ModeItem;
+
 		return candidate && ModeEnum.is(candidate.mode);
 	}
 }
@@ -147,6 +152,7 @@ export type DirectoryItem = {
 export namespace DirectoryItem {
 	export function is(item: any): item is DirectoryItem {
 		const candidate = item as DirectoryItem;
+
 		return (
 			candidate &&
 			Is.string(candidate.directory) &&
@@ -169,6 +175,7 @@ export type ConfigurationSettings = {
 	};
 	codeAction: CodeActionSettings;
 	codeActionOnSave: CodeActionsOnSaveSettings;
+
 	format: boolean;
 	quiet: boolean;
 	onIgnoredFiles: ESLintSeverity;

@@ -50,17 +50,22 @@ export function isUNC(path: string): boolean {
 	}
 
 	let code = path.charCodeAt(0);
+
 	if (code !== CharCode.Backslash) {
 		return false;
 	}
 	code = path.charCodeAt(1);
+
 	if (code !== CharCode.Backslash) {
 		return false;
 	}
 	let pos = 2;
+
 	const start = pos;
+
 	for (; pos < path.length; pos++) {
 		code = path.charCodeAt(pos);
+
 		if (code === CharCode.Backslash) {
 			break;
 		}
@@ -69,6 +74,7 @@ export function isUNC(path: string): boolean {
 		return false;
 	}
 	code = path.charCodeAt(pos + 1);
+
 	if (isNaN(code) || code === CharCode.Backslash) {
 		return false;
 	}
@@ -77,6 +83,7 @@ export function isUNC(path: string): boolean {
 
 export function getFileSystemPath(uri: URI): string {
 	let result = uri.fsPath;
+
 	if (
 		process.platform === "win32" &&
 		result.length >= 2 &&

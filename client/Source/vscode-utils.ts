@@ -30,6 +30,7 @@ export async function pickFolder(
 		}),
 		{ placeHolder: placeHolder },
 	);
+
 	if (selected === undefined) {
 		return undefined;
 	}

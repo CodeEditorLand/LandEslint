@@ -28,11 +28,13 @@ export type StatusParams = {
  */
 export namespace StatusNotification {
 	export const method: "eslint/status" = "eslint/status";
+
 	export const type = new NotificationType<StatusParams>(method);
 }
 
 export type NoConfigParams = {
 	message: string;
+
 	document: TextDocumentIdentifier;
 };
 
@@ -45,6 +47,7 @@ export type NoConfigResult = {};
  */
 export namespace NoConfigRequest {
 	export const method: "eslint/noConfig" = "eslint/noConfig";
+
 	export const type = new RequestType<NoConfigParams, NoConfigResult, void>(
 		method,
 	);
@@ -63,6 +66,7 @@ export type NoESLintLibraryResult = {};
  */
 export namespace NoESLintLibraryRequest {
 	export const method: "eslint/noLibrary" = "eslint/noLibrary";
+
 	export const type = new RequestType<
 		NoESLintLibraryParams,
 		NoESLintLibraryResult,
@@ -83,6 +87,7 @@ export type OpenESLintDocResult = {};
  */
 export namespace OpenESLintDocRequest {
 	export const method: "eslint/openDoc" = "eslint/openDoc";
+
 	export const type = new RequestType<
 		OpenESLintDocParams,
 		OpenESLintDocResult,
@@ -102,6 +107,7 @@ export type ProbeFailedParams = {
  */
 export namespace ProbeFailedRequest {
 	export const method: "eslint/probeFailed" = "eslint/probeFailed";
+
 	export const type = new RequestType<ProbeFailedParams, void, void>(method);
 }
 
@@ -112,6 +118,7 @@ export namespace ProbeFailedRequest {
 export namespace ShowOutputChannel {
 	export const method: "eslint/showOutputChannel" =
 		"eslint/showOutputChannel";
+
 	export const type = new NotificationType0("eslint/showOutputChannel");
 }
 
@@ -122,5 +129,6 @@ export namespace ShowOutputChannel {
  */
 export namespace ExitCalled {
 	export const method: "eslint/exitCalled" = "eslint/exitCalled";
+
 	export const type = new NotificationType<[number, string]>(method);
 }

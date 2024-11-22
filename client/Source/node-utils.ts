@@ -35,6 +35,7 @@ export namespace Is {
 export function toOSPath(path: string): string {
 	if (process.platform === "win32") {
 		path = path.replace(/^\/(\w)\//, "$1:\\");
+
 		return path.replace(/\//g, "\\");
 	} else {
 		return path;
@@ -60,6 +61,7 @@ export function toPosixPath(path: string): string {
  */
 export async function findEslint(rootPath: string): Promise<string> {
 	const platform = process.platform;
+
 	if (
 		platform === "win32" &&
 		(await existFile(
@@ -184,7 +186,9 @@ class PatternParser {
 
 	next(): Node | undefined {
 		const start = this.index;
+
 		let ch: string | undefined;
+
 		while ((ch = this.value[this.index]) !== this.stopChar) {
 			switch (ch) {
 				case "/":
@@ -192,17 +196,22 @@ class PatternParser {
 						return this.makeTextNode(start);
 					} else {
 						this.index++;
+
 						return { type: NodeType.separator };
 					}
 				case "?":
 					this.index++;
+
 					return { type: NodeType.questionMark };
+
 				case "*":
 					if (this.value[this.index + 1] === "*") {
 						this.index += 2;
+
 						return { type: NodeType.globStar };
 					} else {
 						this.index++;
+
 						return { type: NodeType.star };
 					}
 				case "{":
@@ -213,8 +222,11 @@ class PatternParser {
 							this.value.substring(this.index + 1),
 							"brace",
 						);
+
 						const alternatives: BraceAlternative[] = [];
+
 						let node: Node | undefined;
+
 						while ((node = bracketParser.next()) !== undefined) {
 							if (
 								node.type === NodeType.globStar ||
@@ -227,47 +239,60 @@ class PatternParser {
 							alternatives.push(node);
 						}
 						this.index = this.index + bracketParser.index + 2;
+
 						return {
 							type: NodeType.brace,
 							alternatives: alternatives,
 						};
 					}
 					break;
+
 				case ",":
 					if (this.mode === "brace") {
 						if (start < this.index) {
 							const result = this.makeTextNode(start);
 							this.index++;
+
 							return result;
 						}
 					}
 					this.index++;
+
 					break;
+
 				case "[":
 					// eslint-disable-next-line no-case-declarations
 					const buffer: string[] = [];
 					this.index++;
 					// eslint-disable-next-line no-case-declarations
 					const firstIndex = this.index;
+
 					while (this.index < this.value.length) {
 						const ch = this.value[this.index];
+
 						if (this.index === firstIndex) {
 							switch (ch) {
 								case "]":
 									buffer.push(ch);
+
 									break;
+
 								case "!":
 								case "^":
 									buffer.push("^");
+
 									break;
+
 								default:
 									buffer.push(escapeRegExpCharacters(ch));
+
 									break;
 							}
 						} else if (ch === "-") {
 							buffer.push(ch);
 						} else if (ch === "]") {
 							this.index++;
+
 							return {
 								type: NodeType.bracket,
 								value: buffer.join(""),
@@ -280,6 +305,7 @@ class PatternParser {
 					throw new Error(
 						`Invalid glob pattern ${this.index}. Stopped at ${this.index}`,
 					);
+
 				default:
 					this.index++;
 			}
@@ -296,27 +322,40 @@ class PatternParser {
  */
 export function convert2RegExp(pattern: string): RegExp | undefined {
 	const separator = process.platform === "win32" ? "\\\\" : "\\/";
+
 	const fileChar = `[^${separator}]`;
+
 	function convertNode(node: Node): string {
 		switch (node.type) {
 			case NodeType.separator:
 				return separator;
+
 				break;
+
 			case NodeType.text:
 				return node.value;
+
 				break;
+
 			case NodeType.questionMark:
 				return fileChar;
+
 				break;
+
 			case NodeType.star:
 				return `${fileChar}*?`;
+
 				break;
+
 			case NodeType.globStar:
 				return `(?:${fileChar}|(?:(?:${fileChar}${separator})+${fileChar}))*?`;
+
 			case NodeType.bracket:
 				return `[${node.value}]`;
+
 			case NodeType.brace: {
 				const buffer: string[] = [];
+
 				for (const child of node.alternatives) {
 					buffer.push(convertNode(child));
 				}
@@ -329,13 +368,16 @@ export function convert2RegExp(pattern: string): RegExp | undefined {
 		const buffer: string[] = ["^"];
 
 		const parser = new PatternParser(pattern);
+
 		let node: Node | undefined;
+
 		while ((node = parser.next()) !== undefined) {
 			buffer.push(convertNode(node));
 		}
 		return buffer.length > 0 ? new RegExp(buffer.join("")) : undefined;
 	} catch (err) {
 		console.error(err);
+
 		return undefined;
 	}
 }
@@ -407,11 +449,13 @@ export class Semaphore<T = void> {
 		}
 		const next = this._waiting.shift()!;
 		this._active++;
+
 		if (this._active > this._capacity) {
 			throw new Error(`To many thunks active`);
 		}
 		try {
 			const result = next.thunk();
+
 			if (result instanceof Promise) {
 				result.then(
 					(value) => {

@@ -112,10 +112,12 @@ export class Validator {
 		}
 
 		const languageId = textDocument.languageId;
+
 		const validate = config.get<(ValidateItem | string)[] | null>(
 			"validate",
 			null,
 		);
+
 		if (Array.isArray(validate)) {
 			for (const item of validate) {
 				if (Is.string(item) && item === languageId) {
@@ -135,6 +137,7 @@ export class Validator {
 		}
 
 		const probe: string[] | undefined = config.get<string[]>("probe");
+
 		if (Array.isArray(probe)) {
 			for (const item of probe) {
 				if (item === languageId) {
@@ -170,10 +173,12 @@ export namespace ESLintClient {
 		client: LanguageClient,
 	): Promise<void> {
 		const folders = Workspace.workspaceFolders;
+
 		if (folders === undefined) {
 			void Window.showErrorMessage(
 				"ESLint settings can only be converted if VS Code is opened on a workspace folder.",
 			);
+
 			return;
 		}
 
@@ -181,11 +186,13 @@ export namespace ESLintClient {
 			folders,
 			"Pick a folder to convert its settings",
 		);
+
 		if (folder === undefined) {
 			return;
 		}
 		const migration = new Migration(folder.uri);
 		migration.record();
+
 		if (migration.needsUpdate()) {
 			try {
 				await migration.update();
@@ -227,11 +234,13 @@ export namespace ESLintClient {
 			scheme: "file",
 			pattern: "**/package.json",
 		};
+
 		const configFileFilter: VDocumentFilter = {
 			scheme: "file",
 			pattern:
 				"**/{.eslintr{c.js,c.yaml,c.yml,c,c.json},eslint.confi{g.js,g.mjs,g.cjs}}",
 		};
+
 		const supportedQuickFixKinds: Set<string> = new Set([
 			CodeActionKind.Source.value,
 			CodeActionKind.SourceFixAll.value,
@@ -265,10 +274,13 @@ export namespace ESLintClient {
 		// The client's status bar item.
 		const languageStatus: LanguageStatusItem =
 			Languages.createLanguageStatusItem("eslint.languageStatusItem", []);
+
 		let serverRunning: boolean | undefined;
 
 		const starting = "ESLint server is starting.";
+
 		const running = "ESLint server is running.";
+
 		const stopped = "ESLint server stopped.";
 		languageStatus.name = "ESLint";
 		languageStatus.text = "ESLint";
@@ -280,7 +292,9 @@ export namespace ESLintClient {
 			Omit<StatusParams, "uri">,
 			"validationTime"
 		> & {};
+
 		const documentStatus: Map<string, StatusInfo> = new Map();
+
 		const performanceStatus: Map<string, PerformanceStatus> = new Map();
 
 		// If the workspace configuration changes we need to update the synced documents since the
@@ -288,6 +302,7 @@ export namespace ESLintClient {
 		context.subscriptions.push(
 			Workspace.onDidChangeConfiguration(() => {
 				validator.clear();
+
 				for (const textDocument of syncedDocuments.values()) {
 					if (validator.check(textDocument) === Validate.off) {
 						const provider = client
@@ -350,8 +365,11 @@ export namespace ESLintClient {
 
 		client.onRequest(NoConfigRequest.type, (params) => {
 			const document = Uri.parse(params.document.uri);
+
 			const workspaceFolder = Workspace.getWorkspaceFolder(document);
+
 			const fileLocation = document.fsPath;
+
 			if (workspaceFolder) {
 				client.warn(
 					[
@@ -375,21 +393,27 @@ export namespace ESLintClient {
 				uri: params.document.uri,
 				state: Status.error,
 			});
+
 			return {};
 		});
 
 		client.onRequest(NoESLintLibraryRequest.type, async (params) => {
 			const key = "noESLintMessageShown";
+
 			const state = context.globalState.get<NoESLintState>(key, {});
 
 			const uri: Uri = Uri.parse(params.source.uri);
+
 			const workspaceFolder = Workspace.getWorkspaceFolder(uri);
+
 			const packageManager = await getPackageManager(uri);
+
 			const localInstall = {
 				npm: "npm install eslint",
 				pnpm: "pnpm install eslint",
 				yarn: "yarn add eslint",
 			};
+
 			const globalInstall = {
 				npm: "npm install -g eslint",
 				pnpm: "pnpm install -g eslint",
@@ -402,6 +426,7 @@ export namespace ESLintClient {
 				title: "Go to output",
 				id: 1,
 			};
+
 			if (workspaceFolder) {
 				client.info(
 					[
@@ -461,6 +486,7 @@ export namespace ESLintClient {
 
 		client.onRequest(OpenESLintDocRequest.type, async (params) => {
 			await commands.executeCommand("vscode.open", Uri.parse(params.url));
+
 			return {};
 		});
 
@@ -469,12 +495,15 @@ export namespace ESLintClient {
 				params.textDocument.uri,
 			);
 			validator.add(uri);
+
 			const closeFeature = client.getFeature(
 				DidCloseTextDocumentNotification.method,
 			);
+
 			const diagnosticsFeature = client.getFeature(
 				DocumentDiagnosticRequest.method,
 			);
+
 			for (const document of Workspace.textDocuments) {
 				if (document.uri.toString() === uri.toString()) {
 					closeFeature
@@ -494,6 +523,7 @@ export namespace ESLintClient {
 		const notebookFeature = client.getFeature(
 			NotebookDocumentSyncRegistrationType.method,
 		);
+
 		if (notebookFeature !== undefined) {
 			notebookFeature.register({
 				id: String(Date.now()),
@@ -531,12 +561,14 @@ export namespace ESLintClient {
 			}),
 			Workspace.onDidCloseTextDocument((document) => {
 				const uri = document.uri.toString();
+
 				documentStatus.delete(uri);
 				updateLanguageStatusSelector();
 				updateStatusBar(undefined);
 			}),
 			commands.registerCommand("eslint.executeAutofix", async () => {
 				const textEditor = Window.activeTextEditor;
+
 				if (!textEditor) {
 					return;
 				}
@@ -544,6 +576,7 @@ export namespace ESLintClient {
 					uri: textEditor.document.uri.toString(),
 					version: textEditor.document.version,
 				};
+
 				const params: ExecuteCommandParams = {
 					command: "eslint.applyAllFixes",
 					arguments: [textDocument],
@@ -568,23 +601,28 @@ export namespace ESLintClient {
 				"out",
 				"eslintServer.js",
 			).fsPath;
+
 			const eslintConfig = Workspace.getConfiguration("eslint");
+
 			const debug = sanitize(
 				eslintConfig.get<boolean>("debug", false) ?? false,
 				"boolean",
 				false,
 			);
+
 			const runtime = sanitize(
 				eslintConfig.get<string | null>("runtime", null) ?? undefined,
 				"string",
 				undefined,
 			);
+
 			const execArgv = sanitize(
 				eslintConfig.get<string[] | null>("execArgv", null) ??
 					undefined,
 				"string",
 				undefined,
 			);
+
 			const nodeEnv = sanitize(
 				eslintConfig.get<string | null>("nodeEnv", null) ?? undefined,
 				"string",
@@ -592,6 +630,7 @@ export namespace ESLintClient {
 			);
 
 			let env: { [key: string]: string | number | boolean } | undefined;
+
 			if (debug) {
 				env = env || {};
 				env.DEBUG = "eslint:*,-eslint:code-path,eslintrc:*";
@@ -601,6 +640,7 @@ export namespace ESLintClient {
 				env.NODE_ENV = nodeEnv;
 			}
 			const debugArgv = ["--nolazy", "--inspect=6011"];
+
 			const result: ServerOptions = {
 				run: {
 					module: serverModule,
@@ -622,6 +662,7 @@ export namespace ESLintClient {
 					},
 				},
 			};
+
 			return result;
 		}
 
@@ -669,6 +710,7 @@ export namespace ESLintClient {
 				initializationFailedHandler: (error) => {
 					client.error("Server initialization failed.", error);
 					client.outputChannel.show(true);
+
 					return false;
 				},
 				errorHandler: {
@@ -691,7 +733,9 @@ export namespace ESLintClient {
 							"eslint",
 							document,
 						);
+
 						const run = config.get<RunValues>("run", "onType");
+
 						if (
 							mode === DiagnosticPullMode.onType &&
 							run !== "onType"
@@ -753,14 +797,17 @@ export namespace ESLintClient {
 					},
 					didClose: async (document, next) => {
 						const uri = document.uri.toString();
+
 						if (syncedDocuments.has(uri)) {
 							syncedDocuments.delete(uri);
+
 							return next(document);
 						}
 					},
 					notebooks: {
 						didOpen: (notebookDocument, cells, next) => {
 							const result = next(notebookDocument, cells);
+
 							for (const cell of cells) {
 								syncedDocuments.set(
 									cell.document.uri.toString(),
@@ -823,6 +870,7 @@ export namespace ESLintClient {
 							return [];
 						}
 						const eslintDiagnostics: Diagnostic[] = [];
+
 						for (const diagnostic of context.diagnostics) {
 							if (diagnostic.source === "eslint") {
 								eslintDiagnostics.push(diagnostic);
@@ -839,17 +887,21 @@ export namespace ESLintClient {
 							context,
 							{ diagnostics: eslintDiagnostics },
 						);
+
 						const start = Date.now();
+
 						const result = await next(
 							document,
 							range,
 							newContext,
 							token,
 						);
+
 						if (context.only?.value.startsWith("source.fixAll")) {
 							let performanceInfo = performanceStatus.get(
 								document.languageId,
 							);
+
 							if (performanceInfo === undefined) {
 								performanceInfo =
 									PerformanceStatus.defaultValue;
@@ -868,6 +920,7 @@ export namespace ESLintClient {
 					workspace: {
 						didChangeWatchedFile: (event, next) => {
 							validator.clear();
+
 							return next(event);
 						},
 						didChangeConfiguration: async (sections, next) => {
@@ -891,8 +944,10 @@ export namespace ESLintClient {
 				notebookDocumentOptions: {
 					filterCells: (_notebookDocument, cells) => {
 						const result: NotebookCell[] = [];
+
 						for (const cell of cells) {
 							const document = cell.document;
+
 							if (
 								Languages.match(packageJsonFilter, document) ||
 								Languages.match(configFileFilter, document) ||
@@ -905,6 +960,7 @@ export namespace ESLintClient {
 					},
 				},
 			};
+
 			return clientOptions;
 		}
 
@@ -914,6 +970,7 @@ export namespace ESLintClient {
 					"packageManager",
 					"npm",
 				);
+
 			const detectedPackageManager =
 				await commands.executeCommand<PackageManagers>(
 					"npm.packageManager",
@@ -927,6 +984,7 @@ export namespace ESLintClient {
 				{},
 				true,
 			);
+
 			return userProvidedPackageManager;
 		}
 
@@ -937,19 +995,24 @@ export namespace ESLintClient {
 				return [];
 			}
 			const result: (ConfigurationSettings | null)[] = [];
+
 			for (const item of params.items) {
 				if (item.section || !item.scopeUri) {
 					result.push(null);
+
 					continue;
 				}
 				const resource = client.protocol2CodeConverter.asUri(
 					item.scopeUri,
 				);
+
 				const textDocument = getTextDocument(resource);
+
 				const config = Workspace.getConfiguration(
 					"eslint",
 					textDocument ?? resource,
 				);
+
 				const workspaceFolder =
 					resource.scheme === "untitled"
 						? Workspace.workspaceFolders !== undefined
@@ -960,6 +1023,7 @@ export namespace ESLintClient {
 					const globalMigration = Workspace.getConfiguration(
 						"eslint",
 					).get("migration.2_x", "on");
+
 					if (notNow === false && globalMigration === "on") {
 						try {
 							migration = new Migration(resource);
@@ -974,7 +1038,9 @@ export namespace ESLintClient {
 							}
 							if (migration.needsUpdate()) {
 								const folder = workspaceFolder?.name;
+
 								const file = path.basename(resource.fsPath);
+
 								const selected =
 									await Window.showInformationMessage<Item>(
 										[
@@ -998,6 +1064,7 @@ export namespace ESLintClient {
 											isCloseAffordance: true,
 										},
 									);
+
 								if (selected !== undefined) {
 									if (selected.id === "yes") {
 										try {
@@ -1028,10 +1095,12 @@ export namespace ESLintClient {
 						}
 					}
 				});
+
 				const useFlatConfig = config.get<boolean | null>(
 					"useFlatConfig",
 					null,
 				);
+
 				const settings: ConfigurationSettings = {
 					validate: Validate.off,
 					packageManager: config.get<PackageManagers>(
@@ -1091,11 +1160,14 @@ export namespace ESLintClient {
 						>("codeAction.showDocumentation", { enable: true }),
 					},
 				};
+
 				const document: TextDocument | undefined = syncedDocuments.get(
 					item.scopeUri,
 				);
+
 				if (document === undefined) {
 					result.push(settings);
+
 					continue;
 				}
 				if (config.get<boolean>("enabled", true)) {
@@ -1106,12 +1178,14 @@ export namespace ESLintClient {
 						"format.enable",
 						false,
 					);
+
 					settings.codeActionOnSave.mode = CodeActionsOnSaveMode.from(
 						config.get<CodeActionsOnSaveMode>(
 							"codeActionsOnSave.mode",
 							CodeActionsOnSaveMode.all,
 						),
 					);
+
 					settings.codeActionOnSave.rules =
 						CodeActionsOnSaveRules.from(
 							config.get<string[] | null>(
@@ -1138,17 +1212,23 @@ export namespace ESLintClient {
 					  )[]
 					| undefined
 				>("workingDirectories", undefined);
+
 				if (Array.isArray(workingDirectories)) {
 					let workingDirectory: ModeItem | DirectoryItem | undefined =
 						undefined;
+
 					const workspaceFolderPath =
 						workspaceFolder && workspaceFolder.uri.scheme === "file"
 							? workspaceFolder.uri.fsPath
 							: undefined;
+
 					for (const entry of workingDirectories) {
 						let directory: string | undefined;
+
 						let pattern: string | undefined;
+
 						let noCWD = false;
+
 						if (Is.string(entry)) {
 							directory = entry;
 						} else if (LegacyDirectoryItem.is(entry)) {
@@ -1156,28 +1236,34 @@ export namespace ESLintClient {
 							noCWD = !entry.changeProcessCWD;
 						} else if (DirectoryItem.is(entry)) {
 							directory = entry.directory;
+
 							if (entry["!cwd"] !== undefined) {
 								noCWD = entry["!cwd"];
 							}
 						} else if (PatternItem.is(entry)) {
 							pattern = entry.pattern;
+
 							if (entry["!cwd"] !== undefined) {
 								noCWD = entry["!cwd"];
 							}
 						} else if (ModeItem.is(entry)) {
 							workingDirectory = entry;
+
 							continue;
 						}
 
 						let itemValue: string | undefined;
+
 						if (directory !== undefined || pattern !== undefined) {
 							const filePath =
 								document.uri.scheme === "file"
 									? document.uri.fsPath
 									: undefined;
+
 							if (filePath !== undefined) {
 								if (directory !== undefined) {
 									directory = toOSPath(directory);
+
 									if (
 										!path.isAbsolute(directory) &&
 										workspaceFolderPath !== undefined
@@ -1218,8 +1304,10 @@ export namespace ESLintClient {
 									}
 									const regExp: RegExp | undefined =
 										convert2RegExp(pattern);
+
 									if (regExp !== undefined) {
 										const match = regExp.exec(filePath);
+
 										if (
 											match !== null &&
 											match.length > 0
@@ -1294,6 +1382,7 @@ export namespace ESLintClient {
 			uri: Uri,
 		): RuleCustomization[] {
 			let customizations: RuleCustomization[] | undefined = undefined;
+
 			if (uri.scheme === "vscode-notebook-cell") {
 				customizations = config.get<RuleCustomization[] | undefined>(
 					"notebooks.rules.customizations",
@@ -1314,15 +1403,19 @@ export namespace ESLintClient {
 
 		function updateDocumentStatus(params: StatusParams): void {
 			const needsSelectorUpdate = !documentStatus.has(params.uri);
+
 			documentStatus.set(params.uri, { state: params.state });
+
 			if (needsSelectorUpdate) {
 				updateLanguageStatusSelector();
 			}
 			const textDocument = syncedDocuments.get(params.uri);
+
 			if (textDocument !== undefined) {
 				let performanceInfo = performanceStatus.get(
 					textDocument.languageId,
 				);
+
 				if (performanceInfo === undefined) {
 					performanceInfo = PerformanceStatus.defaultValue;
 					performanceStatus.set(
@@ -1339,9 +1432,12 @@ export namespace ESLintClient {
 
 		function updateLanguageStatusSelector(): void {
 			const selector: VDocumentFilter[] = [];
+
 			for (const key of documentStatus.keys()) {
 				const uri: Uri = Uri.parse(key);
+
 				const document = syncedDocuments.get(key);
+
 				const filter: VDocumentFilter = {
 					scheme: uri.scheme,
 					pattern: uri.fsPath,
@@ -1354,12 +1450,14 @@ export namespace ESLintClient {
 
 		function acknowledgePerformanceStatus(): void {
 			const activeTextDocument = Window.activeTextEditor?.document;
+
 			if (activeTextDocument === undefined) {
 				return;
 			}
 			const performanceInfo = performanceStatus.get(
 				activeTextDocument.languageId,
 			);
+
 			if (
 				performanceInfo === undefined ||
 				performanceInfo.reported === 0
@@ -1373,12 +1471,14 @@ export namespace ESLintClient {
 		function updateStatusBar(textDocument: TextDocument | undefined) {
 			const activeTextDocument =
 				textDocument ?? Window.activeTextEditor?.document;
+
 			if (activeTextDocument === undefined || serverRunning === false) {
 				return;
 			}
 			const performanceInfo = performanceStatus.get(
 				activeTextDocument.languageId,
 			);
+
 			const statusInfo = documentStatus.get(
 				activeTextDocument.uri.toString(),
 			) ?? { state: Status.ok };
@@ -1390,6 +1490,7 @@ export namespace ESLintClient {
 				warn: 4000,
 				error: 8000,
 			});
+
 			if (validationBudget.warn < 0 || validationBudget.error < 0) {
 				validationBudget = {
 					warn:
@@ -1409,6 +1510,7 @@ export namespace ESLintClient {
 				warn: 3000,
 				error: 6000,
 			});
+
 			if (fixesBudget.warn < 0 || fixesBudget.error < 0) {
 				fixesBudget = {
 					warn:
@@ -1424,6 +1526,7 @@ export namespace ESLintClient {
 
 			let severity: LanguageStatusSeverity =
 				LanguageStatusSeverity.Information;
+
 			const [timeTaken, detail, message, timeBudget] = (function (): [
 				number,
 				string | undefined,
@@ -1442,6 +1545,7 @@ export namespace ESLintClient {
 						performanceInfo.fixTime,
 						performanceInfo.reported,
 					);
+
 					return [
 						timeTaken,
 						timeTaken > fixesBudget.warn
@@ -1455,6 +1559,7 @@ export namespace ESLintClient {
 						performanceInfo.validationTime,
 						performanceInfo.reported,
 					);
+
 					return [
 						timeTaken,
 						timeTaken > validationBudget.warn
@@ -1470,11 +1575,15 @@ export namespace ESLintClient {
 			switch (statusInfo.state) {
 				case Status.ok:
 					break;
+
 				case Status.warn:
 					severity = LanguageStatusSeverity.Warning;
+
 					break;
+
 				case Status.error:
 					severity = LanguageStatusSeverity.Error;
+
 					break;
 			}
 			if (

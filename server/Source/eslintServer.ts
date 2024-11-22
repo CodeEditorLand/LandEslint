@@ -73,6 +73,7 @@ const connection: ProposedFeatures.Connection = createConnection(
 						id: message.id,
 						result: null,
 					};
+
 					return response;
 				}
 				return undefined;
@@ -98,6 +99,7 @@ function loadNodeModule<T>(moduleName: string): T | undefined {
 		typeof __webpack_require__ === "function"
 			? __non_webpack_require__
 			: require;
+
 	try {
 		return r(moduleName);
 	} catch (err: any) {
@@ -118,6 +120,7 @@ process.exit = ((code?: number): void => {
 		code ? code : 0,
 		stack.stack,
 	]);
+
 	setTimeout(() => {
 		nodeExit(code);
 	}, 1000);
@@ -126,6 +129,7 @@ process.exit = ((code?: number): void => {
 // Handling of uncaught exceptions hitting the event loop.
 process.on("uncaughtException", (error: any) => {
 	let message: string | undefined;
+
 	if (error) {
 		if (typeof error.stack === "string") {
 			message = error.stack;
@@ -144,6 +148,7 @@ process.on("uncaughtException", (error: any) => {
 	}
 	// eslint-disable-next-line no-console
 	console.error("Uncaught exception received.");
+
 	if (message) {
 		// eslint-disable-next-line no-console
 		console.error(message);
@@ -162,6 +167,7 @@ function inferFilePath(
 		return undefined;
 	}
 	const uri = getUri(documentOrUri);
+
 	if (uri.scheme === "file") {
 		return getFileSystemPath(uri);
 	}
@@ -169,18 +175,24 @@ function inferFilePath(
 	const notebookDocument = notebooks.findNotebookDocumentForCell(
 		uri.toString(),
 	);
+
 	if (notebookDocument !== undefined) {
 		const notebookUri = URI.parse(notebookDocument.uri);
+
 		if (notebookUri.scheme === "file") {
 			const filePath = getFileSystemPath(uri);
+
 			if (filePath !== undefined) {
 				const textDocument = documents.get(uri.toString());
+
 				if (textDocument !== undefined) {
 					const extension = LanguageDefaults.getExtension(
 						textDocument.languageId,
 					);
+
 					if (extension !== undefined) {
 						const extname = path.extname(filePath);
+
 						if (extname.length === 0 && filePath[0] === ".") {
 							return `${filePath}.${extension}`;
 						} else if (
@@ -202,6 +214,7 @@ SaveRuleConfigs.inferFilePath = inferFilePath;
 
 documents.onDidClose(async (event) => {
 	const document = event.document;
+
 	const uri = document.uri;
 	ESLint.removeSettings(uri);
 	SaveRuleConfigs.remove(uri);
@@ -221,19 +234,27 @@ function environmentChanged() {
 
 namespace CommandIds {
 	export const applySingleFix: string = "eslint.applySingleFix";
+
 	export const applySuggestion: string = "eslint.applySuggestion";
+
 	export const applySameFixes: string = "eslint.applySameFixes";
+
 	export const applyAllFixes: string = "eslint.applyAllFixes";
+
 	export const applyDisableLine: string = "eslint.applyDisableLine";
+
 	export const applyDisableFile: string = "eslint.applyDisableFile";
+
 	export const openRuleDoc: string = "eslint.openRuleDoc";
 }
 
 connection.onInitialize((params, _cancel, progress) => {
 	progress.begin("Initializing ESLint Server");
+
 	const syncKind: TextDocumentSyncKind = TextDocumentSyncKind.Incremental;
 	clientCapabilities = params.capabilities;
 	progress.done();
+
 	const capabilities: ServerCapabilities = {
 		textDocumentSync: {
 			openClose: true,
@@ -309,11 +330,13 @@ const emptyDiagnosticResult: FullDocumentDiagnosticReport = {
 
 connection.languages.diagnostics.on(async (params) => {
 	const document = documents.get(params.textDocument.uri);
+
 	if (document === undefined) {
 		return emptyDiagnosticResult;
 	}
 
 	const settings = await ESLint.resolveSettings(document);
+
 	if (
 		settings.validate !== Validate.on ||
 		!TextDocumentSettings.hasLibrary(settings)
@@ -322,13 +345,16 @@ connection.languages.diagnostics.on(async (params) => {
 	}
 	try {
 		const start = Date.now();
+
 		const diagnostics = await ESLint.validate(document, settings);
+
 		const timeTaken = Date.now() - start;
 		void connection.sendNotification(StatusNotification.type, {
 			uri: document.uri,
 			state: Status.ok,
 			validationTime: timeTaken,
 		});
+
 		return {
 			kind: DocumentDiagnosticReportKind.Full,
 			items: diagnostics,
@@ -338,8 +364,10 @@ connection.languages.diagnostics.on(async (params) => {
 		// we are not showing any stale once
 		if (!settings.silent) {
 			let status: Status | undefined = undefined;
+
 			for (const handler of ESLint.ErrorHandlers.single) {
 				status = handler(err, document, settings.library, settings);
+
 				if (status) {
 					break;
 				}
@@ -375,19 +403,23 @@ connection.onDidChangeWatchedFiles(async (params) => {
 	await Promise.all(
 		params.changes.map(async (change) => {
 			const fsPath = inferFilePath(change.uri);
+
 			if (fsPath === undefined || fsPath.length === 0 || isUNC(fsPath)) {
 				return;
 			}
 			const dirname = path.dirname(fsPath);
+
 			if (dirname) {
 				const data =
 					ESLint.ErrorHandlers.getConfigErrorReported(fsPath);
+
 				if (data !== undefined) {
 					const eslintClass = await ESLint.newClass(
 						data.library,
 						{},
 						data.settings,
 					);
+
 					try {
 						await eslintClass.lintText("", {
 							filePath: path.join(dirname, "___test___.js"),
@@ -422,6 +454,7 @@ class CodeActionResult {
 
 	public get(ruleId: string): RuleCodeActions {
 		let result: RuleCodeActions | undefined = this._actions.get(ruleId);
+
 		if (result === undefined) {
 			result = { fixes: [], suggestions: [] };
 			this._actions.set(ruleId, result);
@@ -438,9 +471,11 @@ class CodeActionResult {
 
 	public all(): CodeAction[] {
 		const result: CodeAction[] = [];
+
 		for (const actions of this._actions.values()) {
 			result.push(...actions.fixes);
 			result.push(...actions.suggestions);
+
 			if (actions.disable) {
 				result.push(actions.disable);
 			}
@@ -462,6 +497,7 @@ class CodeActionResult {
 
 	public get length(): number {
 		let result: number = 0;
+
 		for (const actions of this._actions.values()) {
 			result += actions.fixes.length;
 		}
@@ -531,14 +567,19 @@ namespace CommandParams {
 }
 
 const changes = new Changes();
+
 const ESLintSourceFixAll: string = `${CodeActionKind.SourceFixAll}.eslint`;
 
 connection.onCodeAction(async (params) => {
 	const result: CodeActionResult = new CodeActionResult();
+
 	const uri = params.textDocument.uri;
+
 	const textDocument = documents.get(uri);
+
 	if (textDocument === undefined) {
 		changes.clear(textDocument);
+
 		return result.all();
 	}
 
@@ -550,7 +591,9 @@ connection.onCodeAction(async (params) => {
 		diagnostic?: Diagnostic,
 	): CodeAction {
 		const command = Command.create(title, commandId, arg);
+
 		const action = CodeAction.create(title, command, kind);
+
 		if (diagnostic !== undefined) {
 			action.diagnostics = [diagnostic];
 		}
@@ -569,6 +612,7 @@ connection.onCodeAction(async (params) => {
 			} else {
 				// commentTags is an array containing the block comment closing and opening tags
 				charIndex = line.indexOf(commentTags[1]);
+
 				while (charIndex > 0 && line[charIndex - 1] === " ") {
 					charIndex--;
 				}
@@ -598,6 +642,7 @@ connection.onCodeAction(async (params) => {
 		const lineComment = LanguageDefaults.getLineComment(
 			textDocument.languageId,
 		);
+
 		const blockComment = LanguageDefaults.getBlockComment(
 			textDocument.languageId,
 		);
@@ -617,11 +662,13 @@ connection.onCodeAction(async (params) => {
 			const matchedLineDisable = new RegExp(
 				`${escapeStringRegexp(lineComment)} eslint-disable-next-line`,
 			).test(prevLine);
+
 			if (matchedLineDisable) {
 				const insertionIndex = getDisableRuleEditInsertionIndex(
 					prevLine,
 					lineComment,
 				);
+
 				return TextEdit.insert(
 					Position.create(editInfo.line - 2, insertionIndex),
 					`, ${editInfo.ruleId}`,
@@ -631,11 +678,13 @@ connection.onCodeAction(async (params) => {
 			const matchedBlockDisable = new RegExp(
 				`${escapeStringRegexp(blockComment[0])} eslint-disable-next-line`,
 			).test(prevLine);
+
 			if (matchedBlockDisable) {
 				const insertionIndex = getDisableRuleEditInsertionIndex(
 					prevLine,
 					blockComment,
 				);
+
 				return TextEdit.insert(
 					Position.create(editInfo.line - 2, insertionIndex),
 					`, ${editInfo.ruleId}`,
@@ -646,7 +695,9 @@ connection.onCodeAction(async (params) => {
 		// We're creating a new disabling comment. Use the comment style given in settings.
 		const commentStyle =
 			settings.codeAction.disableRuleComment.commentStyle;
+
 		let disableRuleContent: string;
+
 		if (commentStyle === "block") {
 			disableRuleContent = `${indentationText}${blockComment[0]} eslint-disable-next-line ${editInfo.ruleId} ${blockComment[1]}${EOL}`;
 		} else {
@@ -667,16 +718,20 @@ connection.onCodeAction(async (params) => {
 		const lineComment = LanguageDefaults.getLineComment(
 			textDocument.languageId,
 		);
+
 		const blockComment = LanguageDefaults.getBlockComment(
 			textDocument.languageId,
 		);
+
 		const currentLine = textDocument.getText(
 			Range.create(
 				Position.create(editInfo.line - 1, 0),
 				Position.create(editInfo.line - 1, uinteger.MAX_VALUE),
 			),
 		);
+
 		let disableRuleContent: string;
+
 		let insertionIndex: number;
 
 		// Check if there's already a disabling comment. If so, we ignore the settings here
@@ -684,9 +739,11 @@ connection.onCodeAction(async (params) => {
 		const matchedLineDisable = new RegExp(
 			`${lineComment} eslint-disable-line`,
 		).test(currentLine);
+
 		const matchedBlockDisable = new RegExp(
 			`${blockComment[0]} eslint-disable-line`,
 		).test(currentLine);
+
 		if (matchedLineDisable) {
 			disableRuleContent = `, ${editInfo.ruleId}`;
 			insertionIndex = getDisableRuleEditInsertionIndex(
@@ -724,8 +781,11 @@ connection.onCodeAction(async (params) => {
 		const shebang = textDocument.getText(
 			Range.create(Position.create(0, 0), Position.create(0, 2)),
 		);
+
 		const line = shebang === "#!" ? 1 : 0;
+
 		const block = LanguageDefaults.getBlockComment(textDocument.languageId);
+
 		return TextEdit.insert(
 			Position.create(line, 0),
 			`${block[0]} eslint-disable ${editInfo.ruleId} ${block[1]}${EOL}`,
@@ -734,6 +794,7 @@ connection.onCodeAction(async (params) => {
 
 	function getLastEdit(array: FixableProblem[]): FixableProblem | undefined {
 		const length = array.length;
+
 		if (length === 0) {
 			return undefined;
 		}
@@ -760,19 +821,24 @@ connection.onCodeAction(async (params) => {
 		params.context.only !== undefined && params.context.only.length > 0
 			? params.context.only[0]
 			: undefined;
+
 	const isSource = only === CodeActionKind.Source;
+
 	const isSourceFixAll =
 		only === ESLintSourceFixAll || only === CodeActionKind.SourceFixAll;
+
 	if (isSourceFixAll || isSource) {
 		if (isSourceFixAll) {
 			const textDocumentIdentifier: VersionedTextDocumentIdentifier = {
 				uri: textDocument.uri,
 				version: textDocument.version,
 			};
+
 			const edits = await computeAllFixes(
 				textDocumentIdentifier,
 				AllFixesMode.onSave,
 			);
+
 			if (edits !== undefined) {
 				result.fixAll.push(
 					CodeAction.create(
@@ -807,16 +873,20 @@ connection.onCodeAction(async (params) => {
 	}
 
 	const fixes = new Fixes(problems);
+
 	if (fixes.isEmpty()) {
 		return result.all();
 	}
 
 	let documentVersion: number = -1;
+
 	const allFixableRuleIds: string[] = [];
+
 	const kind: CodeActionKind = only ?? CodeActionKind.QuickFix;
 
 	for (const editInfo of fixes.getScoped(params.context.diagnostics)) {
 		documentVersion = editInfo.documentVersion;
+
 		const ruleId = editInfo.ruleId;
 		allFixableRuleIds.push(ruleId);
 
@@ -829,6 +899,7 @@ connection.onCodeAction(async (params) => {
 				`${CommandIds.applySingleFix}:${ruleId}`,
 				workspaceChange,
 			);
+
 			const action = createCodeAction(
 				editInfo.label,
 				kind,
@@ -854,6 +925,7 @@ connection.onCodeAction(async (params) => {
 					`${CommandIds.applySuggestion}:${ruleId}:${suggestionSequence}`,
 					workspaceChange,
 				);
+
 				const action = createCodeAction(
 					`${suggestion.desc} (${editInfo.ruleId})`,
 					CodeActionKind.QuickFix,
@@ -874,6 +946,7 @@ connection.onCodeAction(async (params) => {
 			ruleId !== RuleMetaData.unusedDisableDirectiveId
 		) {
 			let workspaceChange = new WorkspaceChange();
+
 			if (
 				settings.codeAction.disableRuleComment.location === "sameLine"
 			) {
@@ -887,7 +960,9 @@ connection.onCodeAction(async (params) => {
 						Position.create(editInfo.line - 1, uinteger.MAX_VALUE),
 					),
 				);
+
 				const matches = /^([ \t]*)/.exec(lineText);
+
 				const indentationText =
 					matches !== null && matches.length > 0 ? matches[1] : "";
 				workspaceChange
@@ -956,6 +1031,7 @@ connection.onCodeAction(async (params) => {
 			}
 			if (sameProblems.has(editInfo.ruleId)) {
 				const same = sameProblems.get(editInfo.ruleId)!;
+
 				if (!Fixes.overlaps(getLastEdit(same), editInfo)) {
 					same.push(editInfo);
 				}
@@ -964,6 +1040,7 @@ connection.onCodeAction(async (params) => {
 		sameProblems.forEach((same, ruleId) => {
 			if (same.length > 1) {
 				const sameFixes: WorkspaceChange = new WorkspaceChange();
+
 				const sameTextChange = sameFixes.getTextEditChange({
 					uri,
 					version: documentVersion,
@@ -1003,7 +1080,9 @@ async function computeAllFixes(
 	mode: AllFixesMode,
 ): Promise<TextEdit[] | undefined> {
 	const uri = identifier.uri;
+
 	const textDocument = documents.get(uri)!;
+
 	if (
 		textDocument === undefined ||
 		identifier.version !== textDocument.version
@@ -1021,8 +1100,11 @@ async function computeAllFixes(
 		return [];
 	}
 	const filePath = inferFilePath(textDocument);
+
 	const problems = CodeActions.get(uri);
+
 	const originalContent = textDocument.getText();
+
 	let start = Date.now();
 	// Only use known fixes when running in onSave mode. See https://github.com/microsoft/vscode-eslint/issues/871
 	// for details
@@ -1041,16 +1123,21 @@ async function computeAllFixes(
 		connection.tracer.log(
 			`Computing all fixes took: ${Date.now() - start} ms.`,
 		);
+
 		return result;
 	} else {
 		const saveConfig =
 			filePath !== undefined && mode === AllFixesMode.onSave
 				? await SaveRuleConfigs.get(uri, settings)
 				: undefined;
+
 		const offRules = saveConfig?.offRules;
+
 		let overrideConfig: Required<ConfigData> | undefined;
+
 		if (offRules !== undefined) {
 			overrideConfig = { rules: Object.create(null) };
+
 			for (const ruleId of offRules) {
 				overrideConfig.rules[ruleId] = "off";
 			}
@@ -1060,6 +1147,7 @@ async function computeAllFixes(
 				// Don't use any precomputed fixes since neighbour fixes can produce incorrect results.
 				// See https://github.com/microsoft/vscode-eslint/issues/1745
 				const result: TextEdit[] = [];
+
 				const reportResults = await eslintClass.lintText(
 					originalContent,
 					{ filePath },
@@ -1067,6 +1155,7 @@ async function computeAllFixes(
 				connection.tracer.log(
 					`Computing all fixes took: ${Date.now() - start} ms.`,
 				);
+
 				if (
 					Array.isArray(reportResults) &&
 					reportResults.length === 1 &&
@@ -1074,6 +1163,7 @@ async function computeAllFixes(
 				) {
 					const fixedContent = reportResults[0].output;
 					start = Date.now();
+
 					const diffs = stringDiff(
 						originalContent,
 						fixedContent,
@@ -1082,6 +1172,7 @@ async function computeAllFixes(
 					connection.tracer.log(
 						`Computing minimal edits took: ${Date.now() - start} ms.`,
 					);
+
 					for (const diff of diffs) {
 						result.push({
 							range: {
@@ -1111,14 +1202,18 @@ async function computeAllFixes(
 
 connection.onExecuteCommand(async (params) => {
 	let workspaceChange: WorkspaceChange | undefined;
+
 	const commandParams: CommandParams = params.arguments![0] as CommandParams;
+
 	if (params.command === CommandIds.applyAllFixes) {
 		const edits = await computeAllFixes(
 			commandParams,
 			AllFixesMode.command,
 		);
+
 		if (edits !== undefined && edits.length > 0) {
 			workspaceChange = new WorkspaceChange();
+
 			const textChange = workspaceChange.getTextEditChange(commandParams);
 			edits.forEach((edit) => textChange.add(edit));
 		}
@@ -1144,6 +1239,7 @@ connection.onExecuteCommand(async (params) => {
 			CommandParams.hasRuleId(commandParams)
 		) {
 			const url = RuleMetaData.getUrl(commandParams.ruleId);
+
 			if (url) {
 				void connection.sendRequest(OpenESLintDocRequest.type, { url });
 			}
@@ -1168,6 +1264,7 @@ connection.onExecuteCommand(async (params) => {
 			connection.console.error(
 				`Failed to apply command: ${params.command}`,
 			);
+
 			return null;
 		},
 	);
@@ -1175,6 +1272,7 @@ connection.onExecuteCommand(async (params) => {
 
 connection.onDocumentFormatting((params) => {
 	const textDocument = documents.get(params.textDocument.uri);
+
 	if (textDocument === undefined) {
 		return [];
 	}

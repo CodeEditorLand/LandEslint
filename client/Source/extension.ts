@@ -26,10 +26,12 @@ import { pickFolder } from "./vscode-utils";
 
 function createDefaultConfiguration(): void {
 	const folders = Workspace.workspaceFolders;
+
 	if (!folders) {
 		void Window.showErrorMessage(
 			"An ESLint configuration can only be generated if VS Code is opened on a workspace folder.",
 		);
+
 		return;
 	}
 	const noConfigFolders = folders.filter((folder) => {
@@ -41,6 +43,7 @@ function createDefaultConfiguration(): void {
 			".eslintrc",
 			".eslintrc.json",
 		];
+
 		for (const configFile of configFiles) {
 			if (fs.existsSync(path.join(folder.uri.fsPath, configFile))) {
 				return false;
@@ -48,6 +51,7 @@ function createDefaultConfiguration(): void {
 		}
 		return true;
 	});
+
 	if (noConfigFolders.length === 0) {
 		if (folders.length === 1) {
 			void Window.showInformationMessage(
@@ -68,10 +72,12 @@ function createDefaultConfiguration(): void {
 			return;
 		}
 		const folderRootPath = folder.uri.fsPath;
+
 		const terminal = Window.createTerminal({
 			name: `ESLint init`,
 			cwd: folderRootPath,
 		});
+
 		const eslintCommand = await findEslint(folderRootPath);
 		terminal.sendText(`${eslintCommand} --init`);
 		terminal.show();
@@ -79,8 +85,11 @@ function createDefaultConfiguration(): void {
 }
 
 let onActivateCommands: Disposable[] | undefined;
+
 let client: LanguageClient;
+
 const taskProvider: TaskProvider = new TaskProvider();
+
 const validator: Validator = new Validator();
 
 export function activate(context: ExtensionContext) {
@@ -106,14 +115,17 @@ export function activate(context: ExtensionContext) {
 				configurationListener.dispose();
 				activated = true;
 				realActivate(context);
+
 				return;
 			}
 		}
 	}
 
 	let activated: boolean = false;
+
 	const openListener: Disposable =
 		Workspace.onDidOpenTextDocument(didOpenTextDocument);
+
 	const configurationListener: Disposable =
 		Workspace.onDidChangeConfiguration(configurationChanged);
 
@@ -122,6 +134,7 @@ export function activate(context: ExtensionContext) {
 			"eslint",
 			Window.activeTextEditor?.document,
 		).get("enable", true);
+
 		if (!enabled) {
 			void Window.showInformationMessage(
 				`ESLint is not running because the deprecated setting 'eslint.enable' is set to false. Remove the setting and use the extension disablement feature.`,
@@ -185,12 +198,14 @@ function realActivate(context: ExtensionContext): void {
 
 	client.start().catch((error) => {
 		client.error(`Starting the server failed.`, error, "force");
+
 		const message =
 			typeof error === "string"
 				? error
 				: typeof error.message === "string"
 					? error.message
 					: undefined;
+
 		if (message !== undefined && message.indexOf("ENOENT") !== -1) {
 			client.info(`PATH environment variable is: ${process.env["PATH"]}`);
 		}
@@ -202,5 +217,6 @@ export function deactivate(): Promise<void> {
 		onActivateCommands.forEach((command) => command.dispose());
 	}
 	taskProvider.dispose();
+
 	return client !== undefined ? client.stop() : Promise.resolve();
 }

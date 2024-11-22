@@ -24,6 +24,7 @@ export type ValidateItem = {
 export namespace ValidateItem {
 	export function is(item: any): item is ValidateItem {
 		const candidate = item as ValidateItem;
+
 		return (
 			candidate &&
 			Is.string(candidate.language) &&
@@ -40,6 +41,7 @@ export type LegacyDirectoryItem = {
 export namespace LegacyDirectoryItem {
 	export function is(item: any): item is LegacyDirectoryItem {
 		const candidate = item as LegacyDirectoryItem;
+
 		return (
 			candidate &&
 			Is.string(candidate.directory) &&
@@ -56,6 +58,7 @@ export type PatternItem = {
 export namespace PatternItem {
 	export function is(item: any): item is PatternItem {
 		const candidate = item as PatternItem;
+
 		return (
 			candidate &&
 			Is.string(candidate.pattern) &&
@@ -139,6 +142,7 @@ namespace CodeActionsOnSave {
 			return;
 		} else if (Array.isArray(setting)) {
 			const index = setting.indexOf("source.fixAll.eslint");
+
 			if (value === true) {
 				if (index === -1) {
 					setting.push("source.fixAll.eslint");
@@ -255,10 +259,13 @@ export class Migration {
 				setting.value = Object.create(null) as {};
 			}
 			const autoFix: boolean = !!elem.value;
+
 			const sourceFixAll: boolean = !!CodeActionsOnSave.getSourceFixAll(
 				setting.value,
 			);
+
 			let result: boolean;
+
 			if (
 				autoFix !== sourceFixAll &&
 				autoFix &&
@@ -269,6 +276,7 @@ export class Migration {
 					setting.value,
 					elem.value,
 				);
+
 				setting.changed = true;
 				result = !!CodeActionsOnSave.getSourceFixAllESLint(
 					setting.value,
@@ -310,6 +318,7 @@ export class Migration {
 			}
 			for (let i = 0; i < elem.value.length; i++) {
 				const item = elem.value[i];
+
 				if (typeof item === "string") {
 					continue;
 				}
@@ -319,6 +328,7 @@ export class Migration {
 					typeof item.language === "string"
 				) {
 					const setting = settingAccessor(item.language);
+
 					if (
 						!Is.objectLiteral(setting.value) &&
 						!Array.isArray(setting.value)
@@ -334,6 +344,7 @@ export class Migration {
 							setting.value!,
 							false,
 						);
+
 						setting.changed = true;
 					}
 				}
@@ -347,24 +358,30 @@ export class Migration {
 		}
 
 		const languageSpecificSettings = this.languageSpecificSettings;
+
 		const workspaceConfig = this.workspaceConfig;
+
 		function getCodeActionsOnSave(
 			language: string,
 		): MigrationData<CodeActionsOnSave> {
 			let result: MigrationData<CodeActionsOnSave> | undefined =
 				languageSpecificSettings.get(language);
+
 			if (result !== undefined) {
 				return result;
 			}
 			const value: InspectData<LanguageSettings> | undefined =
 				workspaceConfig.inspect(`[${language}]`);
+
 			if (value === undefined) {
 				return MigrationData.create(undefined);
 			}
 
 			const globalValue = value.globalValue?.["editor.codeActionsOnSave"];
+
 			const workspaceFolderValue =
 				value.workspaceFolderValue?.["editor.codeActionsOnSave"];
+
 			const workspaceValue =
 				value.workspaceValue?.["editor.codeActionsOnSave"];
 			result = MigrationData.create<CodeActionsOnSave>({
@@ -373,6 +390,7 @@ export class Migration {
 				workspaceValue,
 			});
 			languageSpecificSettings.set(language, result);
+
 			return result;
 		}
 
@@ -411,6 +429,7 @@ export class Migration {
 			}
 			for (let i = 0; i < elem.value.length; i++) {
 				const item = elem.value[i];
+
 				if (
 					typeof item === "string" ||
 					ModeItem.is(item) ||
@@ -424,6 +443,7 @@ export class Migration {
 				/* For now we don't rewrite the settings to allow users to go back to an older version
 				if (LegacyDirectoryItem.is(item)) {
 					const legacy: LegacyDirectoryItem = item;
+
 					if (legacy.changeProcessCWD === false) {
 						(item as DirectoryItem)['!cwd'] = true;
 						elem.changed = true;
@@ -572,8 +592,10 @@ export class Migration {
 
 			for (const language of this.languageSpecificSettings.keys()) {
 				const value = this.languageSpecificSettings.get(language)!;
+
 				if (MigrationData.needsUpdate(value)) {
 					const section = `[${language}]`;
+
 					const current =
 						this.workspaceConfig.inspect<LanguageSettings>(section);
 					await _updateLanguageSetting(

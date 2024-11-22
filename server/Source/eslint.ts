@@ -85,6 +85,7 @@ export interface ESLintError extends Error {
 export namespace ESLintError {
 	export function isNoConfigFound(error: any): boolean {
 		const candidate = error as ESLintError;
+
 		return (
 			candidate.messageTemplate === "no-config-found" ||
 			candidate.message === "No ESLint configuration found."
@@ -162,6 +163,7 @@ export namespace RuleMetaData {
 	// nor any other metadata (although they do provide a fix). In order to
 	// provide code actions for these, we create a fake rule ID and metadata.
 	export const unusedDisableDirectiveId = "unused-disable-directive";
+
 	const unusedDisableDirectiveMeta: RuleMetaData = {
 		docs: {
 			url: "https://eslint.org/docs/latest/use/configure/rules#report-unused-eslint-disable-comments",
@@ -170,6 +172,7 @@ export namespace RuleMetaData {
 	};
 
 	const handled: Set<string> = new Set();
+
 	const ruleId2Meta: Map<string, RuleMetaData> = new Map([
 		[unusedDisableDirectiveId, unusedDisableDirectiveMeta],
 	]);
@@ -179,10 +182,12 @@ export namespace RuleMetaData {
 		reports: ESLintDocumentReport[],
 	): void {
 		let rulesMetaData: Record<string, RuleMetaData> | undefined;
+
 		if (eslint.isCLIEngine) {
 			const toHandle = reports.filter(
 				(report) => !handled.has(report.filePath),
 			);
+
 			if (toHandle.length === 0) {
 				return;
 			}
@@ -244,6 +249,7 @@ type ParserOptions = {
 
 type ESLintRcConfig = {
 	env: Record<string, boolean>;
+
 	extends: string | string[];
 	// globals: Record<string, GlobalConf>;
 	ignorePatterns: string | string[];
@@ -256,12 +262,14 @@ type ESLintRcConfig = {
 	reportUnusedDisableDirectives: boolean | undefined;
 	root: boolean;
 	rules: Record<string, RuleConf>;
+
 	settings: object;
 };
 type ESLintConfig = ESLintRcConfig;
 
 export type Problem = {
 	label: string;
+
 	documentVersion: number;
 	ruleId: string;
 	line: number;
@@ -347,6 +355,7 @@ namespace ESLintClass {
 		}
 		const configType = (eslint.constructor as ESLintClassConstructor)
 			.configType;
+
 		return configType ?? "eslintrc";
 	}
 }
@@ -418,6 +427,7 @@ export namespace ESLintModule {
 			ESLint: ESLintClassConstructor;
 			isFlatConfig?: boolean;
 		} = value as any;
+
 		return (
 			candidate.ESLint !== undefined && candidate.isFlatConfig === true
 		);
@@ -442,6 +452,7 @@ interface CLIEngine {
 	isPathIgnored(path: string): boolean;
 	// This is only available from v4.15.0 forward
 	getRules?(): Map<string, RuleData>;
+
 	getConfigForFile?(path: string): ESLintConfig;
 }
 
@@ -488,6 +499,7 @@ class ESLintClassEmulator implements ESLintClass {
 			return undefined;
 		}
 		const rules: Record<string, RuleMetaData> = {};
+
 		for (const [name, rule] of this.cli.getRules()) {
 			if (rule.meta !== undefined) {
 				rules[name] = rule.meta;
@@ -537,9 +549,12 @@ export class Fixes {
 
 	public getScoped(diagnostics: Diagnostic[]): Problem[] {
 		const result: Problem[] = [];
+
 		for (const diagnostic of diagnostics) {
 			const key = Diagnostics.computeKey(diagnostic);
+
 			const editInfo = this.edits.get(key);
+
 			if (editInfo) {
 				result.push(editInfo);
 			}
@@ -549,6 +564,7 @@ export class Fixes {
 
 	public getAllSorted(): FixableProblem[] {
 		const result: FixableProblem[] = [];
+
 		for (const value of this.edits.values()) {
 			if (Problem.isFixable(value)) {
 				result.push(value);
@@ -556,6 +572,7 @@ export class Fixes {
 		}
 		return result.sort((a, b) => {
 			const d0 = a.edit.range[0] - b.edit.range[0];
+
 			if (d0 !== 0) {
 				return d0;
 			}
@@ -563,6 +580,7 @@ export class Fixes {
 
 			// Length of a and length of b
 			const al = a.edit.range[1] - a.edit.range[0];
+
 			const bl = b.edit.range[1] - b.edit.range[0];
 			// Both has the same start offset and length.
 			if (al === bl) {
@@ -581,14 +599,18 @@ export class Fixes {
 
 	public getApplicable(): FixableProblem[] {
 		const sorted = this.getAllSorted();
+
 		if (sorted.length <= 1) {
 			return sorted;
 		}
 		const result: FixableProblem[] = [];
+
 		let last: FixableProblem = sorted[0];
 		result.push(last);
+
 		for (let i = 1; i < sorted.length; i++) {
 			const current = sorted[i];
+
 			if (
 				!Fixes.overlaps(last, current) &&
 				!Fixes.sameRange(last, current)
@@ -617,12 +639,15 @@ export namespace SaveRuleConfigs {
 	const saveRuleConfigCache = new LRUCache<string, SaveRuleConfigItem | null>(
 		128,
 	);
+
 	export async function get(
 		uri: string,
 		settings: TextDocumentSettings & { library: ESLintModule },
 	): Promise<SaveRuleConfigItem | undefined> {
 		const filePath = inferFilePath(uri);
+
 		let result = saveRuleConfigCache.get(uri);
+
 		if (filePath === undefined || result === null) {
 			return undefined;
 		}
@@ -635,6 +660,7 @@ export namespace SaveRuleConfigs {
 				return undefined;
 			}
 			const config = await eslint.calculateConfigForFile(filePath);
+
 			if (
 				config === undefined ||
 				config.rules === undefined ||
@@ -643,7 +669,9 @@ export namespace SaveRuleConfigs {
 				return undefined;
 			}
 			const offRules: Set<string> = new Set();
+
 			const onRules: Set<string> = new Set();
+
 			if (rules.length === 0) {
 				Object.keys(config.rules).forEach((ruleId) =>
 					offRules.add(ruleId),
@@ -659,11 +687,14 @@ export namespace SaveRuleConfigs {
 			}
 			return offRules.size > 0 ? { offRules, onRules } : undefined;
 		}, settings);
+
 		if (result === undefined || result === null) {
 			saveRuleConfigCache.set(uri, null);
+
 			return undefined;
 		} else {
 			saveRuleConfigCache.set(uri, result);
+
 			return result;
 		}
 	}
@@ -710,6 +741,7 @@ export namespace RuleSeverities {
 	): RuleSeverity | undefined {
 		let result: RuleSeverity | undefined | null =
 			ruleSeverityCache.get(ruleId);
+
 		if (result === null) {
 			return undefined;
 		}
@@ -729,10 +761,12 @@ export namespace RuleSeverities {
 		}
 		if (result === undefined) {
 			ruleSeverityCache.set(ruleId, null);
+
 			return undefined;
 		}
 
 		ruleSeverityCache.set(ruleId, result);
+
 		return result;
 	}
 
@@ -756,7 +790,9 @@ export namespace RuleSeverities {
 namespace Diagnostics {
 	export function computeKey(diagnostic: Diagnostic): string {
 		const range = diagnostic.range;
+
 		let message: string | undefined;
+
 		if (diagnostic.message) {
 			const hash = crypto.createHash("sha256");
 			hash.update(diagnostic.message);
@@ -771,23 +807,28 @@ namespace Diagnostics {
 		document: TextDocument,
 	): [Diagnostic, RuleSeverity | undefined] {
 		const message = problem.message;
+
 		const startLine =
 			typeof problem.line !== "number" || Number.isNaN(problem.line)
 				? 0
 				: Math.max(0, problem.line - 1);
+
 		const startChar =
 			typeof problem.column !== "number" || Number.isNaN(problem.column)
 				? 0
 				: Math.max(0, problem.column - 1);
+
 		let endLine =
 			typeof problem.endLine !== "number" || Number.isNaN(problem.endLine)
 				? startLine
 				: Math.max(0, problem.endLine - 1);
+
 		let endChar =
 			typeof problem.endColumn !== "number" ||
 			Number.isNaN(problem.endColumn)
 				? startChar
 				: Math.max(0, problem.endColumn - 1);
+
 		if (settings.problems.shortenToSingleLine && endLine !== startLine) {
 			const startLineText = document.getText({
 				start: {
@@ -808,6 +849,7 @@ namespace Diagnostics {
 			settings.rulesCustomizations,
 			problem.fix !== undefined,
 		);
+
 		const result: Diagnostic = {
 			message: message,
 			severity: convertSeverityToDiagnosticWithOverride(
@@ -820,9 +862,11 @@ namespace Diagnostics {
 				end: { line: endLine, character: endChar },
 			},
 		};
+
 		if (problem.ruleId) {
 			const url = RuleMetaData.getUrl(problem.ruleId);
 			result.code = problem.ruleId;
+
 			if (url !== undefined) {
 				result.codeDescription = {
 					href: url,
@@ -851,6 +895,7 @@ namespace Diagnostics {
 				switch (convertSeverityToDiagnostic(severity)) {
 					case DiagnosticSeverity.Error:
 						return RuleSeverity.warn;
+
 					case DiagnosticSeverity.Warning:
 					case DiagnosticSeverity.Information:
 						return RuleSeverity.info;
@@ -860,6 +905,7 @@ namespace Diagnostics {
 				switch (convertSeverityToDiagnostic(severity)) {
 					case DiagnosticSeverity.Information:
 						return RuleSeverity.warn;
+
 					case DiagnosticSeverity.Warning:
 					case DiagnosticSeverity.Error:
 						return RuleSeverity.error;
@@ -877,11 +923,14 @@ namespace Diagnostics {
 			case 1:
 			case RuleSeverity.warn:
 				return DiagnosticSeverity.Warning;
+
 			case 2:
 			case RuleSeverity.error:
 				return DiagnosticSeverity.Error;
+
 			case RuleSeverity.info:
 				return DiagnosticSeverity.Information;
+
 			default:
 				return DiagnosticSeverity.Error;
 		}
@@ -927,7 +976,9 @@ export namespace CodeActions {
 			return;
 		}
 		const uri = document.uri;
+
 		let edits: Map<string, Problem> | undefined = CodeActions.get(uri);
+
 		if (edits === undefined) {
 			edits = new Map<string, Problem>();
 			CodeActions.set(uri, edits);
@@ -949,17 +1000,23 @@ export namespace CodeActions {
  */
 export namespace ESLint {
 	let connection: ProposedFeatures.Connection;
+
 	let documents: TextDocuments<TextDocument>;
+
 	let inferFilePath: (
 		documentOrUri: string | TextDocument | URI | undefined,
 	) => string | undefined;
+
 	let loadNodeModule: <T>(moduleName: string) => T | undefined;
 
 	const languageId2ParserRegExp: Map<string, RegExp[]> =
 		(function createLanguageId2ParserRegExp() {
 			const result = new Map<string, RegExp[]>();
+
 			const typescript = /\/@typescript-eslint\/parser\//;
+
 			const babelESLint = /\/babel-eslint\/lib\/index.js$/;
+
 			const vueESLint = /\/vue-eslint-parser\/index.js$/;
 			result.set("typescript", [typescript, babelESLint, vueESLint]);
 			result.set("typescriptreact", [typescript, babelESLint, vueESLint]);
@@ -982,13 +1039,16 @@ export namespace ESLint {
 				parserRegExps?: RegExp[];
 			}
 		>();
+
 		const vue = /vue-eslint-parser\/.*\.js$/;
+
 		const typescriptEslintParser = /@typescript-eslint\/parser\/.*\.js$/;
 		result.set("typescript", {
 			regExps: [vue],
 			parsers: new Set<string>(["@typescript-eslint/parser"]),
 			parserRegExps: [typescriptEslintParser],
 		});
+
 		return result;
 	})();
 
@@ -1029,10 +1089,12 @@ export namespace ESLint {
 		string,
 		ESLintModule
 	>();
+
 	const document2Settings: Map<
 		string,
 		Promise<TextDocumentSettings>
 	> = new Map<string, Promise<TextDocumentSettings>>();
+
 	const formatterRegistrations: Map<string, Promise<Disposable>> = new Map();
 
 	export function initialize(
@@ -1044,6 +1106,7 @@ export namespace ESLint {
 		$loadNodeModule: <T>(moduleName: string) => T | undefined,
 	) {
 		connection = $connection;
+
 		documents = $documents;
 		inferFilePath = $inferFilePath;
 		loadNodeModule = $loadNodeModule;
@@ -1059,8 +1122,10 @@ export namespace ESLint {
 
 	export function unregisterAsFormatter(document: TextDocument): void {
 		const unregister = formatterRegistrations.get(document.uri);
+
 		if (unregister !== undefined) {
 			void unregister.then((disposable) => disposable.dispose());
+
 			formatterRegistrations.delete(document.uri);
 		}
 	}
@@ -1076,7 +1141,9 @@ export namespace ESLint {
 		document: TextDocument,
 	): Promise<TextDocumentSettings> {
 		const uri = document.uri;
+
 		let resultPromise = document2Settings.get(uri);
+
 		if (resultPromise) {
 			return resultPromise;
 		}
@@ -1093,26 +1160,34 @@ export namespace ESLint {
 					},
 					{ workingDirectory: undefined },
 				);
+
 				if (settings.validate === Validate.off) {
 					return settings;
 				}
 				settings.resolvedGlobalPackageManagerPath = GlobalPaths.get(
 					settings.packageManager,
 				);
+
 				const filePath = inferFilePath(document);
+
 				const workspaceFolderPath =
 					settings.workspaceFolder !== undefined
 						? inferFilePath(settings.workspaceFolder.uri)
 						: undefined;
+
 				let assumeFlatConfig: boolean = false;
+
 				const hasUserDefinedWorkingDirectories: boolean =
 					configuration.workingDirectory !== undefined;
+
 				const workingDirectoryConfig =
 					configuration.workingDirectory ?? {
 						mode: ModeEnum.location,
 					};
+
 				if (ModeItem.is(workingDirectoryConfig)) {
 					let candidate: string | undefined;
+
 					if (workingDirectoryConfig.mode === ModeEnum.location) {
 						if (workspaceFolderPath !== undefined) {
 							const [configLocation, isFlatConfig] =
@@ -1120,6 +1195,7 @@ export namespace ESLint {
 									workspaceFolderPath,
 									filePath,
 								);
+
 							if (
 								isFlatConfig &&
 								settings.useFlatConfig !== false
@@ -1149,8 +1225,10 @@ export namespace ESLint {
 					settings.workingDirectory = workingDirectoryConfig;
 				}
 				let nodePath: string | undefined;
+
 				if (settings.nodePath !== null) {
 					nodePath = settings.nodePath;
+
 					if (
 						!path.isAbsolute(nodePath) &&
 						workspaceFolderPath !== undefined
@@ -1159,6 +1237,7 @@ export namespace ESLint {
 					}
 				}
 				let moduleResolveWorkingDirectory: string | undefined;
+
 				if (
 					!hasUserDefinedWorkingDirectories &&
 					filePath !== undefined
@@ -1181,6 +1260,7 @@ export namespace ESLint {
 				const eslintPath = settings.experimental?.useFlatConfig
 					? "eslint/use-at-your-own-risk"
 					: "eslint";
+
 				if (nodePath !== undefined) {
 					promise = Files.resolve(
 						eslintPath,
@@ -1205,16 +1285,20 @@ export namespace ESLint {
 				}
 
 				settings.silent = settings.validate === Validate.probe;
+
 				return promise.then(
 					async (libraryPath) => {
 						let library = path2Library.get(libraryPath);
+
 						if (library === undefined) {
 							if (settings.experimental?.useFlatConfig === true) {
 								const lib = loadNodeModule<{
 									FlatESLint?: ESLintClassConstructor;
 								}>(libraryPath);
+
 								if (lib === undefined) {
 									settings.validate = Validate.off;
+
 									if (!settings.silent) {
 										connection.console.error(
 											`Failed to load eslint library from ${libraryPath}. If you are using ESLint v8.21 or earlier, try upgrading it. For newer versions, try disabling the 'eslint.experimental.useFlatConfig' setting. See the output panel for more information.`,
@@ -1235,13 +1319,16 @@ export namespace ESLint {
 										isFlatConfig: true,
 										CLIEngine: undefined,
 									};
+
 									settings.library = library;
 									path2Library.set(libraryPath, library);
 								}
 							} else {
 								library = loadNodeModule(libraryPath);
+
 								if (library === undefined) {
 									settings.validate = Validate.off;
+
 									if (!settings.silent) {
 										connection.console.error(
 											`Failed to load eslint library from ${libraryPath}. See output panel for more information.`,
@@ -1259,6 +1346,7 @@ export namespace ESLint {
 									connection.console.info(
 										`ESLint library loaded from: ${libraryPath}`,
 									);
+
 									settings.library = library;
 									path2Library.set(libraryPath, library);
 								}
@@ -1271,6 +1359,7 @@ export namespace ESLint {
 								const esLintVersion = semverParse(
 									library.ESLint.version,
 								);
+
 								if (esLintVersion !== null) {
 									if (
 										semverGte(esLintVersion, "8.57.0") &&
@@ -1300,22 +1389,27 @@ export namespace ESLint {
 							TextDocumentSettings.hasLibrary(settings)
 						) {
 							settings.validate = Validate.off;
+
 							const filePath = ESLint.getFilePath(
 								document,
 								settings,
 							);
+
 							if (filePath !== undefined) {
 								const parserRegExps =
 									languageId2ParserRegExp.get(
 										document.languageId,
 									);
+
 								const pluginName = languageId2PluginName.get(
 									document.languageId,
 								);
+
 								const parserOptions =
 									languageId2ParserOptions.get(
 										document.languageId,
 									);
+
 								if (
 									defaultLanguageIds.has(document.languageId)
 								) {
@@ -1334,6 +1428,7 @@ export namespace ESLint {
 												},
 												settings,
 											);
+
 										if (
 											isIgnored === false ||
 											(isIgnored === true &&
@@ -1341,6 +1436,7 @@ export namespace ESLint {
 													ESLintSeverity.off)
 										) {
 											settings.validate = Validate.on;
+
 											if (
 												assumeFlatConfig &&
 												configType === "eslintrc"
@@ -1411,6 +1507,7 @@ export namespace ESLint {
 											},
 											settings,
 										);
+
 									if (eslintConfig !== undefined) {
 										if (
 											assumeFlatConfig &&
@@ -1442,6 +1539,7 @@ export namespace ESLint {
 															eslintConfig.parser,
 														)
 													: undefined;
+
 											if (parser !== undefined) {
 												if (
 													parserRegExps !== undefined
@@ -1452,6 +1550,7 @@ export namespace ESLint {
 														) {
 															settings.validate =
 																Validate.on;
+
 															break;
 														}
 													}
@@ -1471,6 +1570,7 @@ export namespace ESLint {
 																.parserOptions
 																.parser,
 														);
+
 													for (const regExp of parserOptions.regExps) {
 														if (
 															regExp.test(
@@ -1494,6 +1594,7 @@ export namespace ESLint {
 														) {
 															settings.validate =
 																Validate.on;
+
 															break;
 														}
 													}
@@ -1513,6 +1614,7 @@ export namespace ESLint {
 													if (name === pluginName) {
 														settings.validate =
 															Validate.on;
+
 														break;
 													}
 												}
@@ -1533,13 +1635,16 @@ export namespace ESLint {
 						}
 						if (settings.validate === Validate.on) {
 							settings.silent = false;
+
 							if (
 								settings.format &&
 								TextDocumentSettings.hasLibrary(settings) &&
 								!formatterRegistrations.has(uri)
 							) {
 								const Uri = URI.parse(uri);
+
 								const isFile = Uri.scheme === "file";
+
 								let pattern: string = isFile
 									? Uri.fsPath.replace(/\\/g, "/")
 									: Uri.fsPath;
@@ -1549,8 +1654,10 @@ export namespace ESLint {
 									scheme: Uri.scheme,
 									pattern: pattern,
 								};
+
 								const options: DocumentFormattingRegistrationOptions =
 									{ documentSelector: [filter] };
+
 								if (!isFile) {
 									formatterRegistrations.set(
 										uri,
@@ -1586,6 +1693,7 @@ export namespace ESLint {
 					},
 					() => {
 						settings.validate = Validate.off;
+
 						if (!settings.silent) {
 							void connection.sendRequest(
 								NoESLintLibraryRequest.type,
@@ -1596,7 +1704,9 @@ export namespace ESLint {
 					},
 				);
 			});
+
 		document2Settings.set(uri, resultPromise);
+
 		return resultPromise;
 	}
 
@@ -1635,6 +1745,7 @@ export namespace ESLint {
 				: Object.assign(Object.create(null), settings.options, options);
 
 		const cwd = process.cwd();
+
 		try {
 			if (settings.workingDirectory) {
 				// A lot of libs are sensitive to drive letter casing and assume a
@@ -1643,6 +1754,7 @@ export namespace ESLint {
 					settings.workingDirectory.directory,
 				);
 				newOptions.cwd = newCWD;
+
 				if (
 					settings.workingDirectory["!cwd"] !== true &&
 					fs.existsSync(newCWD)
@@ -1668,6 +1780,7 @@ export namespace ESLint {
 
 	function normalizeWorkingDirectory(value: string): string {
 		const result = normalizeDriveLetter(value);
+
 		if (result.length === 0) {
 			return result;
 		}
@@ -1684,12 +1797,15 @@ export namespace ESLint {
 			return undefined;
 		}
 		const uri = URI.parse(document.uri);
+
 		if (uri.scheme !== "file") {
 			if (settings.workspaceFolder !== undefined) {
 				const ext = LanguageDefaults.getExtension(document.languageId);
+
 				const workspacePath = inferFilePath(
 					settings.workspaceFolder.uri,
 				);
+
 				if (workspacePath !== undefined && ext !== undefined) {
 					return path.join(workspacePath, `test.${ext}`);
 				}
@@ -1706,6 +1822,7 @@ export namespace ESLint {
 		"layout",
 		"directive",
 	]);
+
 	export async function validate(
 		document: TextDocument,
 		settings: TextDocumentSettings & { library: ESLintModule },
@@ -1714,12 +1831,15 @@ export namespace ESLint {
 			Object.create(null),
 			settings.options,
 		);
+
 		let fixTypes: Set<string> | undefined = undefined;
+
 		if (
 			Array.isArray(newOptions.fixTypes) &&
 			newOptions.fixTypes.length > 0
 		) {
 			fixTypes = new Set();
+
 			for (const item of newOptions.fixTypes) {
 				if (validFixTypes.has(item)) {
 					fixTypes.add(item);
@@ -1731,24 +1851,30 @@ export namespace ESLint {
 		}
 
 		const content = document.getText();
+
 		const uri = document.uri;
+
 		const file = getFilePath(document, settings);
 
 		return withClass(async (eslintClass) => {
 			CodeActions.remove(uri);
+
 			const reportResults: ESLintDocumentReport[] =
 				await eslintClass.lintText(content, {
 					filePath: file,
 					warnIgnored: settings.onIgnoredFiles !== ESLintSeverity.off,
 				});
 			RuleMetaData.capture(eslintClass, reportResults);
+
 			const diagnostics: Diagnostic[] = [];
+
 			if (
 				reportResults &&
 				Array.isArray(reportResults) &&
 				reportResults.length > 0
 			) {
 				const docReport = reportResults[0];
+
 				if (docReport.messages && Array.isArray(docReport.messages)) {
 					docReport.messages.forEach((problem) => {
 						if (problem) {
@@ -1757,6 +1883,7 @@ export namespace ESLint {
 								problem,
 								document,
 							);
+
 							if (
 								!(
 									override === RuleSeverity.off ||
@@ -1775,6 +1902,7 @@ export namespace ESLint {
 								const type = RuleMetaData.getType(
 									problem.ruleId,
 								);
+
 								if (type !== undefined && fixTypes.has(type)) {
 									CodeActions.record(
 										document,
@@ -1834,6 +1962,7 @@ export namespace ESLint {
 				cache: undefined,
 				get(): string {
 					const pnpmPath = execSync("pnpm root -g").toString().trim();
+
 					return pnpmPath;
 				},
 			},
@@ -1843,6 +1972,7 @@ export namespace ESLint {
 			packageManager: PackageManagers,
 		): string | undefined {
 			const pm = globalPaths[packageManager];
+
 			if (pm) {
 				if (pm.cache === undefined) {
 					pm.cache = pm.get();
@@ -1866,7 +1996,9 @@ export namespace ESLint {
 		}
 
 		let result: string = workspaceFolder;
+
 		let flatConfig: boolean = false;
+
 		let directory: string | undefined = path.dirname(file);
 		outer: while (
 			directory !== undefined &&
@@ -1880,6 +2012,7 @@ export namespace ESLint {
 				if (fs.existsSync(path.join(directory, fileName))) {
 					result = directory;
 					flatConfig = isFlatConfig;
+
 					if (isRoot) {
 						break outer;
 					} else {
@@ -1908,12 +2041,14 @@ export namespace ESLint {
 
 		export function getMessage(err: any, document: TextDocument): string {
 			let result: string | undefined = undefined;
+
 			if (
 				typeof err.message === "string" ||
 				err.message instanceof String
 			) {
 				result = <string>err.message;
 				result = result.replace(/\r?\n/g, " ");
+
 				if (/^CLI: /.test(result)) {
 					result = result.substr(5);
 				}
@@ -1984,6 +2119,7 @@ export namespace ESLint {
 			function handleFileName(filename: string): Status {
 				if (!configErrorReported.has(filename)) {
 					connection.console.error(getMessage(error, document));
+
 					if (!documents.get(URI.file(filename).toString())) {
 						connection.window.showInformationMessage(
 							getMessage(error, document),
@@ -1997,6 +2133,7 @@ export namespace ESLint {
 			let matches = /Cannot read config file:\s+(.*)\nError:\s+(.*)/.exec(
 				error.message,
 			);
+
 			if (matches && matches.length === 3) {
 				return handleFileName(matches[1]);
 			}
@@ -2004,6 +2141,7 @@ export namespace ESLint {
 			matches = /(.*):\n\s*Configuration for rule \"(.*)\" is /.exec(
 				error.message,
 			);
+
 			if (matches && matches.length === 3) {
 				return handleFileName(matches[1]);
 			}
@@ -2012,6 +2150,7 @@ export namespace ESLint {
 				/Cannot find module '([^']*)'\nReferenced from:\s+(.*)/.exec(
 					error.message,
 				);
+
 			if (matches && matches.length === 3) {
 				return handleFileName(matches[2]);
 			}
@@ -2045,6 +2184,7 @@ export namespace ESLint {
 				if (!missingModuleReported.has(plugin)) {
 					const fsPath = inferFilePath(document);
 					missingModuleReported.set(plugin, library);
+
 					if (error.messageTemplate === "plugin-missing") {
 						connection.console.error(
 							[
@@ -2075,6 +2215,7 @@ export namespace ESLint {
 				/Failed to load plugin (.*): Cannot find module (.*)/.exec(
 					error.message,
 				);
+
 			if (matches && matches.length === 3) {
 				return handleMissingModule(matches[1], matches[2], error);
 			}

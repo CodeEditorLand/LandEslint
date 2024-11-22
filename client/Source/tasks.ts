@@ -25,6 +25,7 @@ class FolderTaskProvider {
 			"eslint",
 			this._workspaceFolder.uri,
 		);
+
 		return (
 			config.get<boolean>("lintTask.enable", false) ??
 			config.get<boolean>("provideLintTask", false)
@@ -40,6 +41,7 @@ class FolderTaskProvider {
 			this._workspaceFolder.uri.scheme === "file"
 				? this._workspaceFolder.uri.fsPath
 				: undefined;
+
 		if (!rootPath) {
 			return undefined;
 		}
@@ -53,11 +55,14 @@ class FolderTaskProvider {
 			const options: vscode.ShellExecutionOptions = {
 				cwd: this.workspaceFolder.uri.fsPath,
 			};
+
 			const config = vscode.workspace.getConfiguration(
 				"eslint",
 				this._workspaceFolder.uri,
 			);
+
 			const lintTaskOptions = config.get<string>("lintTask.options", ".");
+
 			return new vscode.Task(
 				kind,
 				this.workspaceFolder,
@@ -101,6 +106,7 @@ export class TaskProvider {
 
 	public start(): void {
 		const folders = vscode.workspace.workspaceFolders;
+
 		if (folders !== undefined) {
 			this.updateWorkspaceFolders(folders, []);
 		}
@@ -141,6 +147,7 @@ export class TaskProvider {
 	): void {
 		for (const remove of removed) {
 			const provider = this.providers.get(remove.uri.toString());
+
 			if (provider) {
 				provider.dispose();
 				this.providers.delete(remove.uri.toString());
@@ -148,6 +155,7 @@ export class TaskProvider {
 		}
 		for (const add of added) {
 			const provider = new FolderTaskProvider(add);
+
 			if (provider.isEnabled()) {
 				this.providers.set(add.uri.toString(), provider);
 				provider.start();
@@ -167,10 +175,12 @@ export class TaskProvider {
 			}
 		}
 		const folders = vscode.workspace.workspaceFolders;
+
 		if (folders) {
 			for (const folder of folders) {
 				if (!this.providers.has(folder.uri.toString())) {
 					const provider = new FolderTaskProvider(folder);
+
 					if (provider.isEnabled()) {
 						this.providers.set(folder.uri.toString(), provider);
 						provider.start();
@@ -202,10 +212,12 @@ export class TaskProvider {
 			return [];
 		} else {
 			const promises: Promise<vscode.Task | undefined>[] = [];
+
 			for (const provider of this.providers.values()) {
 				promises.push(provider.getTask());
 			}
 			const values = await Promise.all(promises);
+
 			return values.filter<vscode.Task>((value): value is vscode.Task => {
 				return value !== undefined;
 			});
