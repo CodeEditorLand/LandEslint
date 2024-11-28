@@ -111,7 +111,9 @@ export function getFileSystemPath(uri: URI): string {
 }
 
 export function normalizePath(path: string): string;
+
 export function normalizePath(path: undefined): undefined;
+
 export function normalizePath(path: string | undefined): string | undefined {
 	if (path === undefined) {
 		return undefined;
