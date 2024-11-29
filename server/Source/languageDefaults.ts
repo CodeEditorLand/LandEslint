@@ -7,7 +7,9 @@
 
 type LanguageConfig = {
 	ext: string;
+
 	lineComment: string;
+
 	blockComment: [string, string];
 };
 

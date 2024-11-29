@@ -59,8 +59,11 @@ export type TextDocumentSettings = Omit<
 	"workingDirectory"
 > & {
 	silent: boolean;
+
 	workingDirectory: DirectoryItem | undefined;
+
 	library: ESLintModule | undefined;
+
 	resolvedGlobalPackageManagerPath: string | undefined;
 };
 
@@ -77,6 +80,7 @@ export namespace TextDocumentSettings {
  */
 export interface ESLintError extends Error {
 	messageTemplate?: string;
+
 	messageData?: {
 		pluginName?: string;
 	};
@@ -95,43 +99,61 @@ export namespace ESLintError {
 
 type ESLintAutoFixEdit = {
 	range: [number, number];
+
 	text: string;
 };
 
 type ESLintSuggestionResult = {
 	desc: string;
+
 	fix: ESLintAutoFixEdit;
 };
 
 type ESLintProblem = {
 	line: number;
+
 	column: number;
+
 	endLine?: number;
+
 	endColumn?: number;
+
 	severity: number;
+
 	ruleId: string;
+
 	message: string;
+
 	fix?: ESLintAutoFixEdit;
+
 	suggestions?: ESLintSuggestionResult[];
 };
 
 type ESLintDocumentReport = {
 	filePath: string;
+
 	errorCount: number;
+
 	warningCount: number;
+
 	messages: ESLintProblem[];
+
 	output?: string;
 };
 
 type ESLintReport = {
 	errorCount: number;
+
 	warningCount: number;
+
 	results: ESLintDocumentReport[];
 };
 
 export type CLIOptions = {
 	cwd?: string;
+
 	fixTypes?: string[];
+
 	fix?: boolean;
 };
 
@@ -145,9 +167,13 @@ export type ConfigData = {
 
 export type ESLintClassOptions = {
 	cwd?: string;
+
 	fixTypes?: string[];
+
 	fix?: boolean;
+
 	overrideConfig?: ConfigData;
+
 	overrideConfigFile?: string | null;
 };
 
@@ -155,6 +181,7 @@ export type RuleMetaData = {
 	docs?: {
 		url?: string;
 	};
+
 	type?: string;
 };
 
@@ -191,10 +218,12 @@ export namespace RuleMetaData {
 			if (toHandle.length === 0) {
 				return;
 			}
+
 			rulesMetaData =
 				typeof eslint.getRulesMetaForResults === "function"
 					? eslint.getRulesMetaForResults(toHandle)
 					: undefined;
+
 			toHandle.forEach((report) => handled.add(report.filePath));
 		} else {
 			rulesMetaData =
@@ -202,13 +231,16 @@ export namespace RuleMetaData {
 					? eslint.getRulesMetaForResults(reports)
 					: undefined;
 		}
+
 		if (rulesMetaData === undefined) {
 			return undefined;
 		}
+
 		Object.entries(rulesMetaData).forEach(([key, meta]) => {
 			if (ruleId2Meta.has(key)) {
 				return;
 			}
+
 			if (meta && meta.docs && Is.string(meta.docs.url)) {
 				ruleId2Meta.set(key, meta);
 			}
@@ -217,7 +249,9 @@ export namespace RuleMetaData {
 
 	export function clear(): void {
 		handled.clear();
+
 		ruleId2Meta.clear();
+
 		ruleId2Meta.set(unusedDisableDirectiveId, unusedDisableDirectiveMeta);
 	}
 
@@ -252,15 +286,24 @@ type ESLintRcConfig = {
 
 	extends: string | string[];
 	// globals: Record<string, GlobalConf>;
+
 	ignorePatterns: string | string[];
+
 	noInlineConfig: boolean;
 	// overrides: OverrideConfigData[];
+
 	parser: string | null;
+
 	parserOptions?: ParserOptions;
+
 	plugins: string[];
+
 	processor: string;
+
 	reportUnusedDisableDirectives: boolean | undefined;
+
 	root: boolean;
+
 	rules: Record<string, RuleConf>;
 
 	settings: object;
@@ -271,10 +314,15 @@ export type Problem = {
 	label: string;
 
 	documentVersion: number;
+
 	ruleId: string;
+
 	line: number;
+
 	diagnostic: Diagnostic;
+
 	edit?: ESLintAutoFixEdit;
+
 	suggestions?: ESLintSuggestionResult[];
 };
 
@@ -353,6 +401,7 @@ namespace ESLintClass {
 		if (eslint.isCLIEngine === true) {
 			return "eslintrc";
 		}
+
 		const configType = (eslint.constructor as ESLintClassConstructor)
 			.configType;
 
@@ -362,7 +411,9 @@ namespace ESLintClass {
 
 interface ESLintClassConstructor {
 	configType?: "eslintrc" | "flat";
+
 	version?: string;
+
 	new (options: ESLintClassOptions): ESLintClass;
 }
 
@@ -377,22 +428,30 @@ export type ESLintModule =
 	| {
 			// version < 7.0
 			ESLint: undefined;
+
 			CLIEngine: CLIEngineConstructor;
+
 			loadESLint?: undefined;
 	  }
 	| {
 			// 7.0 <= version < 8.0
 			ESLint: ESLintClassConstructor;
+
 			CLIEngine: CLIEngineConstructor;
+
 			loadESLint?: undefined;
 	  }
 	| {
 			// 8.0 <= version.
 			ESLint: ESLintClassConstructor;
+
 			isFlatConfig?: boolean;
+
 			CLIEngine: undefined;
+
 			loadESLint?: (options?: {
 				cwd?: string;
+
 				useFlatConfig?: boolean;
 			}) => Promise<ESLintClassConstructor>;
 	  };
@@ -400,31 +459,40 @@ export type ESLintModule =
 export namespace ESLintModule {
 	export function hasLoadESLint(value: ESLintModule): value is {
 		ESLint: ESLintClassConstructor;
+
 		CLIEngine: undefined;
+
 		loadESLint: (options?: {
 			cwd?: string;
+
 			useFlatConfig?: boolean;
 		}) => Promise<ESLintClassConstructor>;
 	} {
 		return value.loadESLint !== undefined;
 	}
+
 	export function hasESLintClass(
 		value: ESLintModule,
 	): value is { ESLint: ESLintClassConstructor; CLIEngine: undefined } {
 		return value.ESLint !== undefined;
 	}
+
 	export function hasCLIEngine(
 		value: ESLintModule,
 	): value is { ESLint: undefined; CLIEngine: CLIEngineConstructor } {
 		return value.CLIEngine !== undefined;
 	}
+
 	export function isFlatConfig(value: ESLintModule): value is {
 		ESLint: ESLintClassConstructor;
+
 		CLIEngine: undefined;
+
 		isFlatConfig: true;
 	} {
 		const candidate: {
 			ESLint: ESLintClassConstructor;
+
 			isFlatConfig?: boolean;
 		} = value as any;
 
@@ -449,6 +517,7 @@ namespace RuleData {
 
 interface CLIEngine {
 	executeOnText(content: string, file?: string, warn?: boolean): ESLintReport;
+
 	isPathIgnored(path: string): boolean;
 	// This is only available from v4.15.0 forward
 	getRules?(): Map<string, RuleData>;
@@ -473,13 +542,16 @@ class ESLintClassEmulator implements ESLintClass {
 	constructor(cli: CLIEngine) {
 		this.cli = cli;
 	}
+
 	get isCLIEngine(): boolean {
 		return true;
 	}
+
 	async lintText(
 		content: string,
 		options: {
 			filePath?: string | undefined;
+
 			warnIgnored?: boolean | undefined;
 		},
 	): Promise<ESLintDocumentReport[]> {
@@ -489,15 +561,18 @@ class ESLintClassEmulator implements ESLintClass {
 			options.warnIgnored,
 		).results;
 	}
+
 	async isPathIgnored(path: string): Promise<boolean> {
 		return this.cli.isPathIgnored(path);
 	}
+
 	getRulesMetaForResults(
 		_results: ESLintDocumentReport[],
 	): Record<string, RuleMetaData> | undefined {
 		if (!CLIEngine.hasRule(this.cli)) {
 			return undefined;
 		}
+
 		const rules: Record<string, RuleMetaData> = {};
 
 		for (const [name, rule] of this.cli.getRules()) {
@@ -505,8 +580,10 @@ class ESLintClassEmulator implements ESLintClass {
 				rules[name] = rule.meta;
 			}
 		}
+
 		return rules;
 	}
+
 	async calculateConfigForFile(
 		path: string,
 	): Promise<ESLintConfig | undefined> {
@@ -544,6 +621,7 @@ export class Fixes {
 		if (this.isEmpty()) {
 			throw new Error("No edits recorded.");
 		}
+
 		return this.edits.values().next().value.documentVersion;
 	}
 
@@ -559,6 +637,7 @@ export class Fixes {
 				result.push(editInfo);
 			}
 		}
+
 		return result;
 	}
 
@@ -570,6 +649,7 @@ export class Fixes {
 				result.push(value);
 			}
 		}
+
 		return result.sort((a, b) => {
 			const d0 = a.edit.range[0] - b.edit.range[0];
 
@@ -590,9 +670,11 @@ export class Fixes {
 			if (al === 0) {
 				return -1;
 			}
+
 			if (bl === 0) {
 				return 1;
 			}
+
 			return al - bl;
 		});
 	}
@@ -603,9 +685,11 @@ export class Fixes {
 		if (sorted.length <= 1) {
 			return sorted;
 		}
+
 		const result: FixableProblem[] = [];
 
 		let last: FixableProblem = sorted[0];
+
 		result.push(last);
 
 		for (let i = 1; i < sorted.length; i++) {
@@ -616,15 +700,18 @@ export class Fixes {
 				!Fixes.sameRange(last, current)
 			) {
 				result.push(current);
+
 				last = current;
 			}
 		}
+
 		return result;
 	}
 }
 
 export type SaveRuleConfigItem = {
 	offRules: Set<string>;
+
 	onRules: Set<string>;
 };
 
@@ -651,14 +738,18 @@ export namespace SaveRuleConfigs {
 		if (filePath === undefined || result === null) {
 			return undefined;
 		}
+
 		if (result !== undefined) {
 			return result;
 		}
+
 		const rules = settings.codeActionOnSave.rules;
+
 		result = await ESLint.withClass(async (eslint) => {
 			if (rules === undefined || eslint.isCLIEngine) {
 				return undefined;
 			}
+
 			const config = await eslint.calculateConfigForFile(filePath);
 
 			if (
@@ -668,6 +759,7 @@ export namespace SaveRuleConfigs {
 			) {
 				return undefined;
 			}
+
 			const offRules: Set<string> = new Set();
 
 			const onRules: Set<string> = new Set();
@@ -685,6 +777,7 @@ export namespace SaveRuleConfigs {
 					}
 				}
 			}
+
 			return offRules.size > 0 ? { offRules, onRules } : undefined;
 		}, settings);
 
@@ -698,6 +791,7 @@ export namespace SaveRuleConfigs {
 			return result;
 		}
 	}
+
 	export function remove(key: string): boolean {
 		return saveRuleConfigCache.delete(key);
 	}
@@ -724,6 +818,7 @@ export namespace SaveRuleConfigs {
 				return false;
 			}
 		}
+
 		return true;
 	}
 }
@@ -745,9 +840,11 @@ export namespace RuleSeverities {
 		if (result === null) {
 			return undefined;
 		}
+
 		if (result !== undefined) {
 			return result;
 		}
+
 		for (const customization of customizations) {
 			if (
 				// Rule name should match
@@ -759,6 +856,7 @@ export namespace RuleSeverities {
 				result = customization.severity;
 			}
 		}
+
 		if (result === undefined) {
 			ruleSeverityCache.set(ruleId, null);
 
@@ -795,9 +893,12 @@ namespace Diagnostics {
 
 		if (diagnostic.message) {
 			const hash = crypto.createHash("sha256");
+
 			hash.update(diagnostic.message);
+
 			message = hash.digest("base64");
 		}
+
 		return `[${range.start.line},${range.start.character},${range.end.line},${range.end.character}]-${diagnostic.code}-${message ?? ""}`;
 	}
 
@@ -840,7 +941,9 @@ namespace Diagnostics {
 					character: uinteger.MAX_VALUE,
 				},
 			});
+
 			endLine = startLine;
+
 			endChar = startLineText.length;
 		}
 
@@ -865,6 +968,7 @@ namespace Diagnostics {
 
 		if (problem.ruleId) {
 			const url = RuleMetaData.getUrl(problem.ruleId);
+
 			result.code = problem.ruleId;
 
 			if (url !== undefined) {
@@ -872,6 +976,7 @@ namespace Diagnostics {
 					href: url,
 				};
 			}
+
 			if (problem.ruleId === "no-unused-vars") {
 				result.tags = [DiagnosticTag.Unnecessary];
 			}
@@ -975,14 +1080,17 @@ export namespace CodeActions {
 		if (!problem.ruleId) {
 			return;
 		}
+
 		const uri = document.uri;
 
 		let edits: Map<string, Problem> | undefined = CodeActions.get(uri);
 
 		if (edits === undefined) {
 			edits = new Map<string, Problem>();
+
 			CodeActions.set(uri, edits);
 		}
+
 		edits.set(Diagnostics.computeKey(diagnostic), {
 			label: `Fix this ${problem.ruleId} problem`,
 			documentVersion: document.version,
@@ -1018,10 +1126,13 @@ export namespace ESLint {
 			const babelESLint = /\/babel-eslint\/lib\/index.js$/;
 
 			const vueESLint = /\/vue-eslint-parser\/index.js$/;
+
 			result.set("typescript", [typescript, babelESLint, vueESLint]);
+
 			result.set("typescriptreact", [typescript, babelESLint, vueESLint]);
 
 			const angular = /\/@angular-eslint\/template-parser\//;
+
 			result.set("html", [angular]);
 
 			return result;
@@ -1035,7 +1146,9 @@ export namespace ESLint {
 			string,
 			{
 				regExps: RegExp[];
+
 				parsers: Set<string>;
+
 				parserRegExps?: RegExp[];
 			}
 		>();
@@ -1043,6 +1156,7 @@ export namespace ESLint {
 		const vue = /vue-eslint-parser\/.*\.js$/;
 
 		const typescriptEslintParser = /@typescript-eslint\/parser\/.*\.js$/;
+
 		result.set("typescript", {
 			regExps: [vue],
 			parsers: new Set<string>(["@typescript-eslint/parser"]),
@@ -1070,7 +1184,9 @@ export namespace ESLint {
 
 	const projectFolderIndicators: {
 		fileName: string;
+
 		isRoot: boolean;
+
 		isFlatConfig: boolean;
 	}[] = [
 		{ fileName: "eslint.config.js", isRoot: true, isFlatConfig: true },
@@ -1108,7 +1224,9 @@ export namespace ESLint {
 		connection = $connection;
 
 		documents = $documents;
+
 		inferFilePath = $inferFilePath;
+
 		loadNodeModule = $loadNodeModule;
 	}
 
@@ -1134,6 +1252,7 @@ export namespace ESLint {
 		for (const unregistration of formatterRegistrations.values()) {
 			void unregistration.then((disposable) => disposable.dispose());
 		}
+
 		formatterRegistrations.clear();
 	}
 
@@ -1147,6 +1266,7 @@ export namespace ESLint {
 		if (resultPromise) {
 			return resultPromise;
 		}
+
 		resultPromise = connection.workspace
 			.getConfiguration({ scopeUri: uri, section: "" })
 			.then((configuration: ConfigurationSettings) => {
@@ -1164,6 +1284,7 @@ export namespace ESLint {
 				if (settings.validate === Validate.off) {
 					return settings;
 				}
+
 				settings.resolvedGlobalPackageManagerPath = GlobalPaths.get(
 					settings.packageManager,
 				);
@@ -1201,6 +1322,7 @@ export namespace ESLint {
 								settings.useFlatConfig !== false
 							) {
 								candidate = configLocation;
+
 								assumeFlatConfig = true;
 							} else {
 								candidate = workspaceFolderPath;
@@ -1218,12 +1340,14 @@ export namespace ESLint {
 							candidate = path.dirname(filePath);
 						}
 					}
+
 					if (candidate !== undefined && fs.existsSync(candidate)) {
 						settings.workingDirectory = { directory: candidate };
 					}
 				} else {
 					settings.workingDirectory = workingDirectoryConfig;
 				}
+
 				let nodePath: string | undefined;
 
 				if (settings.nodePath !== null) {
@@ -1236,6 +1360,7 @@ export namespace ESLint {
 						nodePath = path.join(workspaceFolderPath, nodePath);
 					}
 				}
+
 				let moduleResolveWorkingDirectory: string | undefined;
 
 				if (
@@ -1244,6 +1369,7 @@ export namespace ESLint {
 				) {
 					moduleResolveWorkingDirectory = path.dirname(filePath);
 				}
+
 				if (
 					moduleResolveWorkingDirectory === undefined &&
 					settings.workingDirectory !== undefined &&
@@ -1306,6 +1432,7 @@ export namespace ESLint {
 									}
 								} else if (lib.FlatESLint === undefined) {
 									settings.validate = Validate.off;
+
 									connection.console.error(
 										`The eslint library loaded from ${libraryPath} doesn\'t export a FlatESLint class.`,
 									);
@@ -1321,6 +1448,7 @@ export namespace ESLint {
 									};
 
 									settings.library = library;
+
 									path2Library.set(libraryPath, library);
 								}
 							} else {
@@ -1339,6 +1467,7 @@ export namespace ESLint {
 									library.ESLint === undefined
 								) {
 									settings.validate = Validate.off;
+
 									connection.console.error(
 										`The eslint library loaded from ${libraryPath} doesn\'t export neither a CLIEngine nor an ESLint class. You need at least eslint@1.0.0`,
 									);
@@ -1348,9 +1477,11 @@ export namespace ESLint {
 									);
 
 									settings.library = library;
+
 									path2Library.set(libraryPath, library);
 								}
 							}
+
 							if (
 								library !== undefined &&
 								ESLintModule.hasESLintClass(library) &&
@@ -1384,6 +1515,7 @@ export namespace ESLint {
 						} else {
 							settings.library = library;
 						}
+
 						if (
 							settings.validate === Validate.probe &&
 							TextDocumentSettings.hasLibrary(settings)
@@ -1448,10 +1580,12 @@ export namespace ESLint {
 										}
 									} catch (error: any) {
 										settings.validate = Validate.off;
+
 										await connection.sendNotification(
 											StatusNotification.type,
 											{ uri, state: Status.error },
 										);
+
 										connection.console.error(
 											`Calculating config file for ${uri}) failed.\n${error instanceof Error ? error.stack : ""}`,
 										);
@@ -1493,12 +1627,14 @@ export namespace ESLint {
 																state: Status.error,
 															},
 														);
+
 														connection.console.error(
 															`Calculating config file for ${uri}) failed.\n${err instanceof Error ? err.stack : ""}`,
 														);
 													} catch {
 														// little we can do here
 													}
+
 													return [
 														undefined,
 														undefined,
@@ -1517,6 +1653,7 @@ export namespace ESLint {
 												`Expected to use flat configuration from directory ${settings.workingDirectory?.directory} but loaded eslintrc config.`,
 											);
 										}
+
 										if (
 											configType === "flat" ||
 											ESLintModule.isFlatConfig(
@@ -1555,6 +1692,7 @@ export namespace ESLint {
 														}
 													}
 												}
+
 												if (
 													settings.validate !==
 														Validate.on &&
@@ -1600,6 +1738,7 @@ export namespace ESLint {
 													}
 												}
 											}
+
 											if (
 												settings.validate !==
 													Validate.on &&
@@ -1623,16 +1762,19 @@ export namespace ESLint {
 									}
 								}
 							}
+
 							if (settings.validate === Validate.off) {
 								const params: ProbeFailedParams = {
 									textDocument: { uri: document.uri },
 								};
+
 								void connection.sendRequest(
 									ProbeFailedRequest.type,
 									params,
 								);
 							}
 						}
+
 						if (settings.validate === Validate.on) {
 							settings.silent = false;
 
@@ -1648,6 +1790,7 @@ export namespace ESLint {
 								let pattern: string = isFile
 									? Uri.fsPath.replace(/\\/g, "/")
 									: Uri.fsPath;
+
 								pattern = pattern.replace(/[\[\]\{\}]/g, "?");
 
 								const filter: DocumentFilter = {
@@ -1668,6 +1811,7 @@ export namespace ESLint {
 									);
 								} else {
 									const filePath = inferFilePath(uri)!;
+
 									await ESLint.withClass(
 										async (eslintClass) => {
 											if (
@@ -1689,6 +1833,7 @@ export namespace ESLint {
 								}
 							}
 						}
+
 						return settings;
 					},
 					() => {
@@ -1700,6 +1845,7 @@ export namespace ESLint {
 								{ source: { uri: document.uri } },
 							);
 						}
+
 						return settings;
 					},
 				);
@@ -1728,9 +1874,11 @@ export namespace ESLint {
 		if (ESLintModule.hasESLintClass(library) && settings.useESLintClass) {
 			return new library.ESLint(newOptions);
 		}
+
 		if (ESLintModule.hasCLIEngine(library)) {
 			return new ESLintClassEmulator(new library.CLIEngine(newOptions));
 		}
+
 		return new library.ESLint(newOptions);
 	}
 
@@ -1753,6 +1901,7 @@ export namespace ESLint {
 				const newCWD = normalizeWorkingDirectory(
 					settings.workingDirectory.directory,
 				);
+
 				newOptions.cwd = newCWD;
 
 				if (
@@ -1784,6 +1933,7 @@ export namespace ESLint {
 		if (result.length === 0) {
 			return result;
 		}
+
 		return result[result.length - 1] === path.sep
 			? result.substring(0, result.length - 1)
 			: result;
@@ -1796,6 +1946,7 @@ export namespace ESLint {
 		if (document === undefined) {
 			return undefined;
 		}
+
 		const uri = URI.parse(document.uri);
 
 		if (uri.scheme !== "file") {
@@ -1810,6 +1961,7 @@ export namespace ESLint {
 					return path.join(workspacePath, `test.${ext}`);
 				}
 			}
+
 			return undefined;
 		} else {
 			return inferFilePath(uri);
@@ -1845,6 +1997,7 @@ export namespace ESLint {
 					fixTypes.add(item);
 				}
 			}
+
 			if (fixTypes.size === 0) {
 				fixTypes = undefined;
 			}
@@ -1864,6 +2017,7 @@ export namespace ESLint {
 					filePath: file,
 					warnIgnored: settings.onIgnoredFiles !== ESLintSeverity.off,
 				});
+
 			RuleMetaData.capture(eslintClass, reportResults);
 
 			const diagnostics: Diagnostic[] = [];
@@ -1894,6 +2048,7 @@ export namespace ESLint {
 							) {
 								diagnostics.push(diagnostic);
 							}
+
 							if (
 								fixTypes !== undefined &&
 								problem.ruleId !== undefined &&
@@ -1930,6 +2085,7 @@ export namespace ESLint {
 					});
 				}
 			}
+
 			return diagnostics;
 		}, settings);
 	}
@@ -1977,8 +2133,10 @@ export namespace ESLint {
 				if (pm.cache === undefined) {
 					pm.cache = pm.get();
 				}
+
 				return pm.cache;
 			}
+
 			return undefined;
 		}
 	}
@@ -2000,6 +2158,7 @@ export namespace ESLint {
 		let flatConfig: boolean = false;
 
 		let directory: string | undefined = path.dirname(file);
+
 		outer: while (
 			directory !== undefined &&
 			directory.startsWith(workspaceFolder)
@@ -2011,6 +2170,7 @@ export namespace ESLint {
 			} of projectFolderIndicators) {
 				if (fs.existsSync(path.join(directory, fileName))) {
 					result = directory;
+
 					flatConfig = isFlatConfig;
 
 					if (isRoot) {
@@ -2020,9 +2180,12 @@ export namespace ESLint {
 					}
 				}
 			}
+
 			const parent = path.dirname(directory);
+
 			directory = parent !== directory ? parent : undefined;
 		}
+
 		return [result, flatConfig];
 	}
 
@@ -2047,6 +2210,7 @@ export namespace ESLint {
 				err.message instanceof String
 			) {
 				result = <string>err.message;
+
 				result = result.replace(/\r?\n/g, " ");
 
 				if (/^CLI: /.test(result)) {
@@ -2055,6 +2219,7 @@ export namespace ESLint {
 			} else {
 				result = `An unknown error occurred while validating document: ${document.uri}`;
 			}
+
 			return result;
 		}
 
@@ -2075,6 +2240,7 @@ export namespace ESLint {
 			if (!ESLintError.isNoConfigFound(error)) {
 				return undefined;
 			}
+
 			if (!noConfigReported.has(document.uri)) {
 				connection
 					.sendRequest(NoConfigRequest.type, {
@@ -2084,8 +2250,10 @@ export namespace ESLint {
 						},
 					})
 					.then(undefined, () => {});
+
 				noConfigReported.set(document.uri, library);
 			}
+
 			return Status.warn;
 		}
 
@@ -2125,8 +2293,10 @@ export namespace ESLint {
 							getMessage(error, document),
 						);
 					}
+
 					configErrorReported.set(filename, { library, settings });
 				}
+
 				return Status.warn;
 			}
 
@@ -2183,6 +2353,7 @@ export namespace ESLint {
 			): Status {
 				if (!missingModuleReported.has(plugin)) {
 					const fsPath = inferFilePath(document);
+
 					missingModuleReported.set(plugin, library);
 
 					if (error.messageTemplate === "plugin-missing") {
@@ -2208,6 +2379,7 @@ export namespace ESLint {
 						);
 					}
 				}
+
 				return Status.warn;
 			}
 
@@ -2226,12 +2398,14 @@ export namespace ESLint {
 		function showErrorMessage(error: any, document: TextDocument): Status {
 			if (Is.string(error.stack)) {
 				connection.console.error("An unexpected error occurred:");
+
 				connection.console.error(error.stack);
 			} else {
 				connection.console.error(
 					`An unexpected error occurred: ${getMessage(error, document)}.`,
 				);
 			}
+
 			return Status.error;
 		}
 	}

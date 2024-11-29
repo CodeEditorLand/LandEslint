@@ -26,9 +26,12 @@ export enum Validate {
 export type CodeActionSettings = {
 	disableRuleComment: {
 		enable: boolean;
+
 		location: "separateLine" | "sameLine";
+
 		commentStyle: "line" | "block";
 	};
+
 	showDocumentation: {
 		enable: boolean;
 	};
@@ -46,6 +49,7 @@ export namespace CodeActionsOnSaveMode {
 		if (value === undefined || value === null || !Is.string(value)) {
 			return CodeActionsOnSaveMode.all;
 		}
+
 		switch (value.toLowerCase()) {
 			case CodeActionsOnSaveMode.problems:
 				return CodeActionsOnSaveMode.problems;
@@ -63,12 +67,14 @@ export namespace CodeActionsOnSaveRules {
 		if (value === undefined || value === null || !Array.isArray(value)) {
 			return undefined;
 		}
+
 		return value.filter((item) => Is.string(item));
 	}
 }
 
 export type CodeActionsOnSaveSettings = {
 	mode: CodeActionsOnSaveMode;
+
 	rules?: string[];
 };
 
@@ -83,6 +89,7 @@ export namespace ESLintSeverity {
 		if (value === undefined || value === null) {
 			return ESLintSeverity.off;
 		}
+
 		switch (value.toLowerCase()) {
 			case ESLintSeverity.off:
 				return ESLintSeverity.off;
@@ -114,6 +121,7 @@ export enum RuleSeverity {
 
 export type RuleCustomization = {
 	rule: string;
+
 	severity: RuleSeverity;
 	/** Only apply to autofixable rules */
 	fixable?: boolean;
@@ -167,25 +175,40 @@ export type ESLintOptions = object & { fixTypes?: string[] };
 
 export type ConfigurationSettings = {
 	validate: Validate;
+
 	packageManager: PackageManagers;
+
 	useESLintClass: boolean;
+
 	useFlatConfig?: boolean | undefined;
+
 	experimental?: {
 		useFlatConfig: boolean;
 	};
+
 	codeAction: CodeActionSettings;
+
 	codeActionOnSave: CodeActionsOnSaveSettings;
 
 	format: boolean;
+
 	quiet: boolean;
+
 	onIgnoredFiles: ESLintSeverity;
+
 	options: ESLintOptions | undefined;
+
 	rulesCustomizations: RuleCustomization[];
+
 	run: RunValues;
+
 	problems: {
 		shortenToSingleLine: boolean;
 	};
+
 	nodePath: string | null;
+
 	workspaceFolder: WorkspaceFolder | undefined;
+
 	workingDirectory: ModeItem | DirectoryItem | undefined;
 };

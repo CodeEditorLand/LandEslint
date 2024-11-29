@@ -18,6 +18,7 @@ import { DirectoryItem, ModeItem } from "./shared/settings";
 
 export type ValidateItem = {
 	language: string;
+
 	autoFix?: boolean;
 };
 
@@ -35,6 +36,7 @@ export namespace ValidateItem {
 
 export type LegacyDirectoryItem = {
 	directory: string;
+
 	changeProcessCWD: boolean;
 };
 
@@ -71,18 +73,23 @@ export namespace PatternItem {
 
 type InspectData<T> = {
 	globalValue?: T;
+
 	workspaceValue?: T;
+
 	workspaceFolderValue?: T;
 };
 
 type MigrationElement<T> = {
 	changed: boolean;
+
 	value: T | undefined;
 };
 
 type MigrationData<T> = {
 	global: MigrationElement<T>;
+
 	workspace: MigrationElement<T>;
+
 	workspaceFolder: MigrationElement<T>;
 };
 
@@ -105,6 +112,7 @@ namespace CodeActionsOnSave {
 		) {
 			return false;
 		}
+
 		return setting["source.fixAll.eslint"] === false;
 	}
 
@@ -114,6 +122,7 @@ namespace CodeActionsOnSave {
 		if (setting === null) {
 			return undefined;
 		}
+
 		if (Array.isArray(setting)) {
 			return setting.includes("source.fixAll") ? true : undefined;
 		} else {
@@ -184,6 +193,7 @@ namespace MigrationData {
 					},
 				};
 	}
+
 	export function needsUpdate(data: MigrationData<any>): boolean {
 		return (
 			data.global.changed ||
@@ -195,16 +205,20 @@ namespace MigrationData {
 
 export class Migration {
 	private workspaceConfig: WorkspaceConfiguration;
+
 	private eslintConfig: WorkspaceConfiguration;
+
 	private editorConfig: WorkspaceConfiguration;
 
 	private codeActionOnSave: MigrationData<CodeActionsOnSave>;
+
 	private languageSpecificSettings: Map<
 		string,
 		MigrationData<CodeActionsOnSave>
 	>;
 
 	private autoFixOnSave: MigrationData<boolean>;
+
 	private validate: MigrationData<(ValidateItem | string)[]>;
 
 	private workingDirectories: MigrationData<(string | DirectoryItem)[]>;
@@ -213,28 +227,37 @@ export class Migration {
 
 	constructor(resource: Uri) {
 		this.workspaceConfig = Workspace.getConfiguration(undefined, resource);
+
 		this.eslintConfig = Workspace.getConfiguration("eslint", resource);
+
 		this.editorConfig = Workspace.getConfiguration("editor", resource);
+
 		this.codeActionOnSave = MigrationData.create(
 			this.editorConfig.inspect<CodeActionsOnSave>("codeActionsOnSave"),
 		);
+
 		this.autoFixOnSave = MigrationData.create(
 			this.eslintConfig.inspect<boolean>("autoFixOnSave"),
 		);
+
 		this.validate = MigrationData.create(
 			this.eslintConfig.inspect<(ValidateItem | string)[]>("validate"),
 		);
+
 		this.workingDirectories = MigrationData.create(
 			this.eslintConfig.inspect<(string | DirectoryItem)[]>(
 				"workingDirectories",
 			),
 		);
+
 		this.languageSpecificSettings = new Map();
 	}
 
 	public record(): void {
 		const fixAll = this.recordAutoFixOnSave();
+
 		this.recordValidate(fixAll);
+
 		this.recordWorkingDirectories();
 	}
 
@@ -252,12 +275,14 @@ export class Migration {
 			if (CodeActionsOnSave.isExplicitlyDisabled(setting.value)) {
 				return false;
 			}
+
 			if (
 				!Is.objectLiteral(setting.value) &&
 				!Array.isArray(setting.value)
 			) {
 				setting.value = Object.create(null) as {};
 			}
+
 			const autoFix: boolean = !!elem.value;
 
 			const sourceFixAll: boolean = !!CodeActionsOnSave.getSourceFixAll(
@@ -278,6 +303,7 @@ export class Migration {
 				);
 
 				setting.changed = true;
+
 				result = !!CodeActionsOnSave.getSourceFixAllESLint(
 					setting.value,
 				);
@@ -286,6 +312,7 @@ export class Migration {
 			}
 			/* For now we don't rewrite the settings to allow users to go back to an older version
 			elem.value = undefined;
+
 			elem.changed = true;
 			*/
 			return result;
@@ -316,12 +343,14 @@ export class Migration {
 			if (elem.value === undefined) {
 				return;
 			}
+
 			for (let i = 0; i < elem.value.length; i++) {
 				const item = elem.value[i];
 
 				if (typeof item === "string") {
 					continue;
 				}
+
 				if (
 					fixAll &&
 					item.autoFix === false &&
@@ -335,6 +364,7 @@ export class Migration {
 					) {
 						setting.value = Object.create(null) as {};
 					}
+
 					if (
 						CodeActionsOnSave.getSourceFixAllESLint(
 							setting.value!,
@@ -351,6 +381,7 @@ export class Migration {
 				/* For now we don't rewrite the settings to allow users to go back to an older version
 				if (item.language !== undefined) {
 					elem.value[i] = item.language;
+
 					elem.changed = true;
 				}
 				*/
@@ -370,6 +401,7 @@ export class Migration {
 			if (result !== undefined) {
 				return result;
 			}
+
 			const value: InspectData<LanguageSettings> | undefined =
 				workspaceConfig.inspect(`[${language}]`);
 
@@ -384,11 +416,13 @@ export class Migration {
 
 			const workspaceValue =
 				value.workspaceValue?.["editor.codeActionsOnSave"];
+
 			result = MigrationData.create<CodeActionsOnSave>({
 				globalValue,
 				workspaceFolderValue,
 				workspaceValue,
 			});
+
 			languageSpecificSettings.set(language, result);
 
 			return result;
@@ -399,11 +433,13 @@ export class Migration {
 			(language) => getCodeActionsOnSave(language).global,
 			fixAll[0],
 		);
+
 		record(
 			this.validate.workspace,
 			(language) => getCodeActionsOnSave(language).workspace,
 			fixAll[1] ? fixAll[1] : fixAll[0],
 		);
+
 		record(
 			this.validate.workspaceFolder,
 			(language) => getCodeActionsOnSave(language).workspaceFolder,
@@ -427,6 +463,7 @@ export class Migration {
 			if (elem.value === undefined || !Array.isArray(elem.value)) {
 				return;
 			}
+
 			for (let i = 0; i < elem.value.length; i++) {
 				const item = elem.value[i];
 
@@ -437,6 +474,7 @@ export class Migration {
 				) {
 					continue;
 				}
+
 				if (DirectoryItem.is(item) && item["!cwd"] !== undefined) {
 					continue;
 				}
@@ -446,11 +484,14 @@ export class Migration {
 
 					if (legacy.changeProcessCWD === false) {
 						(item as DirectoryItem)['!cwd'] = true;
+
 						elem.changed = true;
 					}
 				}
+
 				if (DirectoryItem.is(item) && item['!cwd'] === undefined) {
 					elem.value[i] = item.directory;
+
 					elem.changed = true;
 				}
 				*/
@@ -458,7 +499,9 @@ export class Migration {
 		}
 
 		record(this.workingDirectories.global);
+
 		record(this.workingDirectories.workspace);
+
 		record(this.workingDirectories.workspaceFolder);
 	}
 
@@ -471,11 +514,13 @@ export class Migration {
 		) {
 			return true;
 		}
+
 		for (const value of this.languageSpecificSettings.values()) {
 			if (MigrationData.needsUpdate(value)) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
@@ -489,6 +534,7 @@ export class Migration {
 			if (!newValue.changed) {
 				return;
 			}
+
 			await config.update(section, newValue.value, target);
 		}
 
@@ -506,10 +552,13 @@ export class Migration {
 			if (settings === undefined) {
 				settings = Object.create(null) as object;
 			}
+
 			if (settings["editor.codeActionsOnSave"] === undefined) {
 				settings["editor.codeActionsOnSave"] = {};
 			}
+
 			settings["editor.codeActionsOnSave"] = newValue.value;
+
 			await config.update(section, settings, target);
 		}
 
@@ -520,12 +569,14 @@ export class Migration {
 				this.codeActionOnSave.global,
 				ConfigurationTarget.Global,
 			);
+
 			await _update(
 				this.editorConfig,
 				"codeActionsOnSave",
 				this.codeActionOnSave.workspace,
 				ConfigurationTarget.Workspace,
 			);
+
 			await _update(
 				this.editorConfig,
 				"codeActionsOnSave",
@@ -539,12 +590,14 @@ export class Migration {
 				this.autoFixOnSave.global,
 				ConfigurationTarget.Global,
 			);
+
 			await _update(
 				this.eslintConfig,
 				"autoFixOnSave",
 				this.autoFixOnSave.workspace,
 				ConfigurationTarget.Workspace,
 			);
+
 			await _update(
 				this.eslintConfig,
 				"autoFixOnSave",
@@ -558,12 +611,14 @@ export class Migration {
 				this.validate.global,
 				ConfigurationTarget.Global,
 			);
+
 			await _update(
 				this.eslintConfig,
 				"validate",
 				this.validate.workspace,
 				ConfigurationTarget.Workspace,
 			);
+
 			await _update(
 				this.eslintConfig,
 				"validate",
@@ -577,12 +632,14 @@ export class Migration {
 				this.workingDirectories.global,
 				ConfigurationTarget.Global,
 			);
+
 			await _update(
 				this.eslintConfig,
 				"workingDirectories",
 				this.workingDirectories.workspace,
 				ConfigurationTarget.Workspace,
 			);
+
 			await _update(
 				this.eslintConfig,
 				"workingDirectories",
@@ -598,6 +655,7 @@ export class Migration {
 
 					const current =
 						this.workspaceConfig.inspect<LanguageSettings>(section);
+
 					await _updateLanguageSetting(
 						this.workspaceConfig,
 						section,
@@ -605,6 +663,7 @@ export class Migration {
 						value.global,
 						ConfigurationTarget.Global,
 					);
+
 					await _updateLanguageSetting(
 						this.workspaceConfig,
 						section,
@@ -612,6 +671,7 @@ export class Migration {
 						value.workspace,
 						ConfigurationTarget.Workspace,
 					);
+
 					await _updateLanguageSetting(
 						this.workspaceConfig,
 						section,
@@ -624,6 +684,7 @@ export class Migration {
 		} finally {
 			if (this.didChangeConfiguration) {
 				this.didChangeConfiguration();
+
 				this.didChangeConfiguration = undefined;
 			}
 		}

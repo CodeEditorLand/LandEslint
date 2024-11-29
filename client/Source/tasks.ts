@@ -45,6 +45,7 @@ class FolderTaskProvider {
 		if (!rootPath) {
 			return undefined;
 		}
+
 		try {
 			const command = await findEslint(rootPath);
 
@@ -112,29 +113,36 @@ export class TaskProvider {
 		}
 
 		const disposables: vscode.Disposable[] = [];
+
 		disposables.push(
 			vscode.workspace.onDidChangeWorkspaceFolders((event) =>
 				this.updateWorkspaceFolders(event.added, event.removed),
 			),
 		);
+
 		disposables.push(
 			vscode.workspace.onDidChangeConfiguration(
 				this.updateConfiguration,
 				this,
 			),
 		);
+
 		this.disposable = vscode.Disposable.from(...disposables);
 	}
 
 	public dispose(): void {
 		if (this.taskProvider !== undefined) {
 			this.taskProvider.dispose();
+
 			this.taskProvider = undefined;
 		}
+
 		if (this.disposable !== undefined) {
 			this.disposable.dispose();
+
 			this.disposable = undefined;
 		}
+
 		this.providers.clear();
 	}
 
@@ -150,17 +158,21 @@ export class TaskProvider {
 
 			if (provider) {
 				provider.dispose();
+
 				this.providers.delete(remove.uri.toString());
 			}
 		}
+
 		for (const add of added) {
 			const provider = new FolderTaskProvider(add);
 
 			if (provider.isEnabled()) {
 				this.providers.set(add.uri.toString(), provider);
+
 				provider.start();
 			}
 		}
+
 		this.updateProvider();
 	}
 
@@ -171,9 +183,11 @@ export class TaskProvider {
 		for (const detector of this.providers.values()) {
 			if (!detector.isEnabled()) {
 				detector.dispose();
+
 				this.providers.delete(detector.workspaceFolder.uri.toString());
 			}
 		}
+
 		const folders = vscode.workspace.workspaceFolders;
 
 		if (folders) {
@@ -183,11 +197,13 @@ export class TaskProvider {
 
 					if (provider.isEnabled()) {
 						this.providers.set(folder.uri.toString(), provider);
+
 						provider.start();
 					}
 				}
 			}
 		}
+
 		this.updateProvider();
 	}
 
@@ -203,6 +219,7 @@ export class TaskProvider {
 			});
 		} else if (this.taskProvider && this.providers.size === 0) {
 			this.taskProvider.dispose();
+
 			this.taskProvider = undefined;
 		}
 	}
@@ -216,6 +233,7 @@ export class TaskProvider {
 			for (const provider of this.providers.values()) {
 				promises.push(provider.getTask());
 			}
+
 			const values = await Promise.all(promises);
 
 			return values.filter<vscode.Task>((value): value is vscode.Task => {

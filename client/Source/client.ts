@@ -129,6 +129,7 @@ export class Validator {
 					return Validate.on;
 				}
 			}
+
 			return Validate.off;
 		}
 
@@ -152,12 +153,14 @@ export class Validator {
 
 type NoESLintState = {
 	global?: boolean;
+
 	workspaces?: { [key: string]: boolean };
 };
 
 export namespace ESLintClient {
 	function migrationFailed(client: LanguageClient, error: any): void {
 		client.error(error.message ?? "Unknown error", error);
+
 		void Window.showErrorMessage(
 			"ESLint settings migration failed. Please see the ESLint output channel for further details",
 			"Open Channel",
@@ -165,6 +168,7 @@ export namespace ESLintClient {
 			if (selected === undefined) {
 				return;
 			}
+
 			client.outputChannel.show();
 		});
 	}
@@ -190,7 +194,9 @@ export namespace ESLintClient {
 		if (folder === undefined) {
 			return;
 		}
+
 		const migration = new Migration(folder.uri);
+
 		migration.record();
 
 		if (migration.needsUpdate()) {
@@ -204,14 +210,19 @@ export namespace ESLintClient {
 
 	interface TimeBudget {
 		warn: number;
+
 		error: number;
 	}
 
 	type PerformanceStatus = {
 		firstReport: boolean;
+
 		validationTime: number;
+
 		fixTime: number;
+
 		reported: number;
+
 		acknowledged: boolean;
 	};
 
@@ -282,12 +293,16 @@ export namespace ESLintClient {
 		const running = "ESLint server is running.";
 
 		const stopped = "ESLint server stopped.";
+
 		languageStatus.name = "ESLint";
+
 		languageStatus.text = "ESLint";
+
 		languageStatus.command = {
 			title: "Open ESLint Output",
 			command: "eslint.showOutputChannel",
 		};
+
 		type StatusInfo = Omit<
 			Omit<StatusParams, "uri">,
 			"validationTime"
@@ -308,6 +323,7 @@ export namespace ESLintClient {
 						const provider = client
 							.getFeature(DidCloseTextDocumentNotification.method)
 							.getProvider(textDocument);
+
 						provider
 							?.send(textDocument)
 							.catch((error) =>
@@ -318,6 +334,7 @@ export namespace ESLintClient {
 							);
 					}
 				}
+
 				for (const textDocument of Workspace.textDocuments) {
 					if (
 						!syncedDocuments.has(textDocument.uri.toString()) &&
@@ -326,6 +343,7 @@ export namespace ESLintClient {
 						const provider = client
 							.getFeature(DidOpenTextDocumentNotification.method)
 							.getProvider(textDocument);
+
 						provider
 							?.send(textDocument)
 							.catch((error) =>
@@ -349,10 +367,12 @@ export namespace ESLintClient {
 
 		client.onNotification(ExitCalled.type, (params) => {
 			serverCalledProcessExit = true;
+
 			client.error(
 				`Server process exited with code ${params[0]}. This usually indicates a misconfigured ESLint setup.`,
 				params[1],
 			);
+
 			void Window.showErrorMessage(
 				`ESLint server shut down itself. See 'ESLint' output channel for details.`,
 				{ title: "Open Output", id: 1 },
@@ -419,9 +439,11 @@ export namespace ESLintClient {
 				pnpm: "pnpm install -g eslint",
 				yarn: "yarn global add eslint",
 			};
+
 			interface ButtonItem extends MessageItem {
 				id: number;
 			}
+
 			const outputItem: ButtonItem = {
 				title: "Go to output",
 				id: 1,
@@ -445,9 +467,12 @@ export namespace ESLintClient {
 				if (state.workspaces === undefined) {
 					state.workspaces = {};
 				}
+
 				if (!state.workspaces[workspaceFolder.uri.toString()]) {
 					state.workspaces[workspaceFolder.uri.toString()] = true;
+
 					void context.globalState.update(key, state);
+
 					void Window.showInformationMessage(
 						`Failed to load the ESLint library for the document ${uri.fsPath}. See the output for more information.`,
 						outputItem,
@@ -470,7 +495,9 @@ export namespace ESLintClient {
 
 				if (!state.global) {
 					state.global = true;
+
 					void context.globalState.update(key, state);
+
 					void Window.showInformationMessage(
 						`Failed to load the ESLint library for the document ${uri.fsPath}. See the output for more information.`,
 						outputItem,
@@ -481,6 +508,7 @@ export namespace ESLintClient {
 					});
 				}
 			}
+
 			return {};
 		});
 
@@ -494,6 +522,7 @@ export namespace ESLintClient {
 			const uri = client.protocol2CodeConverter.asUri(
 				params.textDocument.uri,
 			);
+
 			validator.add(uri);
 
 			const closeFeature = client.getFeature(
@@ -515,6 +544,7 @@ export namespace ESLintClient {
 								error,
 							),
 						);
+
 					diagnosticsFeature?.getProvider(document)?.forget(document);
 				}
 			}
@@ -544,14 +574,18 @@ export namespace ESLintClient {
 		client.onDidChangeState((event) => {
 			if (event.newState === State.Starting) {
 				client.info(starting);
+
 				serverRunning = undefined;
 			} else if (event.newState === State.Running) {
 				client.info(running);
+
 				serverRunning = true;
 			} else {
 				client.info(stopped);
+
 				serverRunning = false;
 			}
+
 			updateStatusBar(undefined);
 		});
 
@@ -563,7 +597,9 @@ export namespace ESLintClient {
 				const uri = document.uri.toString();
 
 				documentStatus.delete(uri);
+
 				updateLanguageStatusSelector();
+
 				updateStatusBar(undefined);
 			}),
 			commands.registerCommand("eslint.executeAutofix", async () => {
@@ -572,6 +608,7 @@ export namespace ESLintClient {
 				if (!textEditor) {
 					return;
 				}
+
 				const textDocument: VersionedTextDocumentIdentifier = {
 					uri: textEditor.document.uri.toString(),
 					version: textEditor.document.version,
@@ -581,7 +618,9 @@ export namespace ESLintClient {
 					command: "eslint.applyAllFixes",
 					arguments: [textDocument],
 				};
+
 				await client.start();
+
 				client
 					.sendRequest(ExecuteCommandRequest.type, params)
 					.then(undefined, () => {
@@ -633,12 +672,16 @@ export namespace ESLintClient {
 
 			if (debug) {
 				env = env || {};
+
 				env.DEBUG = "eslint:*,-eslint:code-path,eslintrc:*";
 			}
+
 			if (nodeEnv !== undefined) {
 				env = env || {};
+
 				env.NODE_ENV = nodeEnv;
 			}
+
 			const debugArgv = ["--nolazy", "--inspect=6011"];
 
 			const result: ServerOptions = {
@@ -686,6 +729,7 @@ export namespace ESLintClient {
 			} else if (typeof value !== type) {
 				return def;
 			}
+
 			return value;
 		}
 
@@ -709,6 +753,7 @@ export namespace ESLintClient {
 				},
 				initializationFailedHandler: (error) => {
 					client.error("Server initialization failed.", error);
+
 					client.outputChannel.show(true);
 
 					return false;
@@ -721,6 +766,7 @@ export namespace ESLintClient {
 						if (serverCalledProcessExit) {
 							return { action: CloseAction.DoNotRestart };
 						}
+
 						return defaultErrorHandler.closed();
 					},
 				},
@@ -747,6 +793,7 @@ export namespace ESLintClient {
 						) {
 							return true;
 						}
+
 						return validator.check(document) === Validate.off;
 					},
 					onTabs: false,
@@ -759,6 +806,7 @@ export namespace ESLintClient {
 							validator.check(document) !== Validate.off
 						) {
 							const result = next(document);
+
 							syncedDocuments.set(
 								document.uri.toString(),
 								document,
@@ -814,6 +862,7 @@ export namespace ESLintClient {
 									cell.document,
 								);
 							}
+
 							return result;
 						},
 						didChange: (event, next) => {
@@ -826,6 +875,7 @@ export namespace ESLintClient {
 									);
 								}
 							}
+
 							if (
 								event.cells?.structure?.didClose !== undefined
 							) {
@@ -836,13 +886,16 @@ export namespace ESLintClient {
 									);
 								}
 							}
+
 							return next(event);
 						},
 						didClose: (document, cells, next) => {
 							for (const cell of cells) {
 								const key = cell.document.uri.toString();
+
 								syncedDocuments.delete(key);
 							}
+
 							return next(document, cells);
 						},
 					},
@@ -856,12 +909,14 @@ export namespace ESLintClient {
 						if (!syncedDocuments.has(document.uri.toString())) {
 							return [];
 						}
+
 						if (
 							context.only !== undefined &&
 							!supportedQuickFixKinds.has(context.only.value)
 						) {
 							return [];
 						}
+
 						if (
 							context.only === undefined &&
 							(!context.diagnostics ||
@@ -869,6 +924,7 @@ export namespace ESLintClient {
 						) {
 							return [];
 						}
+
 						const eslintDiagnostics: Diagnostic[] = [];
 
 						for (const diagnostic of context.diagnostics) {
@@ -876,12 +932,14 @@ export namespace ESLintClient {
 								eslintDiagnostics.push(diagnostic);
 							}
 						}
+
 						if (
 							context.only === undefined &&
 							eslintDiagnostics.length === 0
 						) {
 							return [];
 						}
+
 						const newContext: CodeActionContext = Object.assign(
 							{},
 							context,
@@ -905,6 +963,7 @@ export namespace ESLintClient {
 							if (performanceInfo === undefined) {
 								performanceInfo =
 									PerformanceStatus.defaultValue;
+
 								performanceStatus.set(
 									document.languageId,
 									performanceInfo,
@@ -912,9 +971,12 @@ export namespace ESLintClient {
 							} else {
 								performanceInfo.firstReport = false;
 							}
+
 							performanceInfo.fixTime = Date.now() - start;
+
 							updateStatusBar(document);
 						}
+
 						return result;
 					},
 					workspace: {
@@ -956,6 +1018,7 @@ export namespace ESLintClient {
 								result.push(cell);
 							}
 						}
+
 						return result;
 					},
 				},
@@ -979,6 +1042,7 @@ export namespace ESLintClient {
 			if (userProvidedPackageManager === detectedPackageManager) {
 				return detectedPackageManager;
 			}
+
 			client.warn(
 				`Detected package manager(${detectedPackageManager}) differs from the one in the deprecated packageManager setting(${userProvidedPackageManager}). We will honor this setting until it is removed.`,
 				{},
@@ -994,6 +1058,7 @@ export namespace ESLintClient {
 			if (params.items === undefined) {
 				return [];
 			}
+
 			const result: (ConfigurationSettings | null)[] = [];
 
 			for (const item of params.items) {
@@ -1002,6 +1067,7 @@ export namespace ESLintClient {
 
 					continue;
 				}
+
 				const resource = client.protocol2CodeConverter.asUri(
 					item.scopeUri,
 				);
@@ -1019,6 +1085,7 @@ export namespace ESLintClient {
 							? Workspace.workspaceFolders[0]
 							: undefined
 						: Workspace.getWorkspaceFolder(resource);
+
 				await migrationSemaphore.lock(async () => {
 					const globalMigration = Workspace.getConfiguration(
 						"eslint",
@@ -1027,7 +1094,9 @@ export namespace ESLintClient {
 					if (notNow === false && globalMigration === "on") {
 						try {
 							migration = new Migration(resource);
+
 							migration.record();
+
 							interface Item extends MessageItem {
 								id:
 									| "yes"
@@ -1036,6 +1105,7 @@ export namespace ESLintClient {
 									| "global"
 									| "local";
 							}
+
 							if (migration.needsUpdate()) {
 								const folder = workspaceFolder?.name;
 
@@ -1082,6 +1152,7 @@ export namespace ESLintClient {
 										);
 									} else if (selected.id === "readme") {
 										notNow = true;
+
 										void Env.openExternal(
 											Uri.parse(
 												"https://github.com/microsoft/vscode-eslint#settings-migration",
@@ -1170,9 +1241,11 @@ export namespace ESLintClient {
 
 					continue;
 				}
+
 				if (config.get<boolean>("enabled", true)) {
 					settings.validate = validator.check(document);
 				}
+
 				if (settings.validate !== Validate.off) {
 					settings.format = !!config.get<boolean>(
 						"format.enable",
@@ -1194,6 +1267,7 @@ export namespace ESLintClient {
 							),
 						);
 				}
+
 				if (workspaceFolder !== undefined) {
 					settings.workspaceFolder = {
 						name: workspaceFolder.name,
@@ -1202,6 +1276,7 @@ export namespace ESLintClient {
 						),
 					};
 				}
+
 				const workingDirectories = config.get<
 					| (
 							| string
@@ -1233,6 +1308,7 @@ export namespace ESLintClient {
 							directory = entry;
 						} else if (LegacyDirectoryItem.is(entry)) {
 							directory = entry.directory;
+
 							noCWD = !entry.changeProcessCWD;
 						} else if (DirectoryItem.is(entry)) {
 							directory = entry.directory;
@@ -1273,6 +1349,7 @@ export namespace ESLintClient {
 											directory,
 										);
 									}
+
 									if (
 										directory.charAt(
 											directory.length - 1,
@@ -1280,6 +1357,7 @@ export namespace ESLintClient {
 									) {
 										directory = directory + path.sep;
 									}
+
 									if (filePath.startsWith(directory)) {
 										itemValue = directory;
 									}
@@ -1296,12 +1374,14 @@ export namespace ESLintClient {
 											pattern,
 										);
 									}
+
 									if (
 										pattern.charAt(pattern.length - 1) !==
 										path.posix.sep
 									) {
 										pattern = pattern + path.posix.sep;
 									}
+
 									const regExp: RegExp | undefined =
 										convert2RegExp(pattern);
 
@@ -1318,6 +1398,7 @@ export namespace ESLintClient {
 								}
 							}
 						}
+
 						if (itemValue !== undefined) {
 							if (
 								workingDirectory === undefined ||
@@ -1333,15 +1414,19 @@ export namespace ESLintClient {
 									itemValue.length
 								) {
 									workingDirectory.directory = itemValue;
+
 									workingDirectory["!cwd"] = noCWD;
 								}
 							}
 						}
 					}
+
 					settings.workingDirectory = workingDirectory;
 				}
+
 				result.push(settings);
 			}
+
 			return result;
 		}
 
@@ -1389,11 +1474,13 @@ export namespace ESLintClient {
 					undefined,
 				);
 			}
+
 			if (customizations === undefined || customizations === null) {
 				customizations = config.get<RuleCustomization[] | undefined>(
 					"rules.customizations",
 				);
 			}
+
 			return parseRulesCustomizations(customizations);
 		}
 
@@ -1409,6 +1496,7 @@ export namespace ESLintClient {
 			if (needsSelectorUpdate) {
 				updateLanguageStatusSelector();
 			}
+
 			const textDocument = syncedDocuments.get(params.uri);
 
 			if (textDocument !== undefined) {
@@ -1418,6 +1506,7 @@ export namespace ESLintClient {
 
 				if (performanceInfo === undefined) {
 					performanceInfo = PerformanceStatus.defaultValue;
+
 					performanceStatus.set(
 						textDocument.languageId,
 						performanceInfo,
@@ -1425,8 +1514,10 @@ export namespace ESLintClient {
 				} else {
 					performanceInfo.firstReport = false;
 				}
+
 				performanceInfo.validationTime = params.validationTime ?? 0;
 			}
+
 			updateStatusBar(textDocument);
 		}
 
@@ -1443,8 +1534,10 @@ export namespace ESLintClient {
 					pattern: uri.fsPath,
 					language: document?.languageId,
 				};
+
 				selector.push(filter);
 			}
+
 			languageStatus.selector = selector;
 		}
 
@@ -1454,6 +1547,7 @@ export namespace ESLintClient {
 			if (activeTextDocument === undefined) {
 				return;
 			}
+
 			const performanceInfo = performanceStatus.get(
 				activeTextDocument.languageId,
 			);
@@ -1464,7 +1558,9 @@ export namespace ESLintClient {
 			) {
 				return;
 			}
+
 			performanceInfo.acknowledged = true;
+
 			updateStatusBar(activeTextDocument);
 		}
 
@@ -1475,6 +1571,7 @@ export namespace ESLintClient {
 			if (activeTextDocument === undefined || serverRunning === false) {
 				return;
 			}
+
 			const performanceInfo = performanceStatus.get(
 				activeTextDocument.languageId,
 			);
@@ -1503,6 +1600,7 @@ export namespace ESLintClient {
 							: validationBudget.error,
 				};
 			}
+
 			let fixesBudget = Workspace.getConfiguration(
 				"eslint",
 				activeTextDocument,
@@ -1540,6 +1638,7 @@ export namespace ESLintClient {
 				) {
 					return [-1, undefined, "", { warn: 0, error: 0 }];
 				}
+
 				if (performanceInfo.fixTime > performanceInfo.validationTime) {
 					const timeTaken = Math.max(
 						performanceInfo.fixTime,
@@ -1569,6 +1668,7 @@ export namespace ESLintClient {
 						validationBudget,
 					];
 				}
+
 				return [-1, undefined, "", { warn: 0, error: 0 }];
 			})();
 
@@ -1586,18 +1686,21 @@ export namespace ESLintClient {
 
 					break;
 			}
+
 			if (
 				severity === LanguageStatusSeverity.Information &&
 				timeTaken > timeBudget.warn
 			) {
 				severity = LanguageStatusSeverity.Warning;
 			}
+
 			if (
 				severity === LanguageStatusSeverity.Warning &&
 				timeTaken > timeBudget.error
 			) {
 				severity = LanguageStatusSeverity.Error;
 			}
+
 			if (timeTaken > timeBudget.warn && performanceInfo !== undefined) {
 				if (timeTaken > performanceInfo.reported) {
 					if (timeTaken > timeBudget.error) {
@@ -1611,9 +1714,11 @@ export namespace ESLintClient {
 			if (detail !== undefined && languageStatus.detail !== detail) {
 				languageStatus.detail = detail;
 			}
+
 			if (languageStatus.severity !== severity) {
 				languageStatus.severity = severity;
 			}
+
 			if (performanceInfo !== undefined) {
 				performanceInfo.reported = Math.max(
 					performanceInfo.reported,

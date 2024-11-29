@@ -34,5 +34,6 @@ export async function pickFolder(
 	if (selected === undefined) {
 		return undefined;
 	}
+
 	return selected.folder;
 }

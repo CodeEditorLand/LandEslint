@@ -21,6 +21,7 @@ export function normalizeDriveLetter(path: string): string {
 	if (process.platform !== "win32" || path.length < 2 || path[1] !== ":") {
 		return path;
 	}
+
 	return path[0].toUpperCase() + path.substring(1);
 }
 
@@ -54,11 +55,13 @@ export function isUNC(path: string): boolean {
 	if (code !== CharCode.Backslash) {
 		return false;
 	}
+
 	code = path.charCodeAt(1);
 
 	if (code !== CharCode.Backslash) {
 		return false;
 	}
+
 	let pos = 2;
 
 	const start = pos;
@@ -70,14 +73,17 @@ export function isUNC(path: string): boolean {
 			break;
 		}
 	}
+
 	if (start === pos) {
 		return false;
 	}
+
 	code = path.charCodeAt(pos + 1);
 
 	if (isNaN(code) || code === CharCode.Backslash) {
 		return false;
 	}
+
 	return true;
 }
 
@@ -94,6 +100,7 @@ export function getFileSystemPath(uri: URI): string {
 		// if the drive letter is lower case in th URI. Ensure upper case.
 		result = result[0].toUpperCase() + result.substr(1);
 	}
+
 	if (process.platform === "win32" || process.platform === "darwin") {
 		try {
 			const realpath = fs.realpathSync.native(result);
@@ -107,6 +114,7 @@ export function getFileSystemPath(uri: URI): string {
 			// such as Neovim for non-written buffers.
 		}
 	}
+
 	return result;
 }
 
@@ -118,9 +126,11 @@ export function normalizePath(path: string | undefined): string | undefined {
 	if (path === undefined) {
 		return undefined;
 	}
+
 	if (process.platform === "win32") {
 		return path.replace(/\\/g, "/");
 	}
+
 	return path;
 }
 

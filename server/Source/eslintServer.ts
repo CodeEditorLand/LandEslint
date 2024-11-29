@@ -76,6 +76,7 @@ const connection: ProposedFeatures.Connection = createConnection(
 
 					return response;
 				}
+
 				return undefined;
 			},
 		},
@@ -107,6 +108,7 @@ function loadNodeModule<T>(moduleName: string): T | undefined {
 			connection.console.error(err.stack.toString());
 		}
 	}
+
 	return undefined;
 }
 
@@ -116,6 +118,7 @@ function loadNodeModule<T>(moduleName: string): T | undefined {
 const nodeExit = process.exit;
 process.exit = ((code?: number): void => {
 	const stack = new Error("stack");
+
 	void connection.sendNotification(ExitCalled.type, [
 		code ? code : 0,
 		stack.stack,
@@ -138,6 +141,7 @@ process.on("uncaughtException", (error: any) => {
 		} else if (typeof error === "string") {
 			message = error;
 		}
+
 		if (message === undefined || message.length === 0) {
 			try {
 				message = JSON.stringify(error, undefined, 4);
@@ -166,6 +170,7 @@ function inferFilePath(
 	if (!documentOrUri) {
 		return undefined;
 	}
+
 	const uri = getUri(documentOrUri);
 
 	if (uri.scheme === "file") {
@@ -206,6 +211,7 @@ function inferFilePath(
 			}
 		}
 	}
+
 	return undefined;
 }
 
@@ -216,17 +222,25 @@ documents.onDidClose(async (event) => {
 	const document = event.document;
 
 	const uri = document.uri;
+
 	ESLint.removeSettings(uri);
+
 	SaveRuleConfigs.remove(uri);
+
 	CodeActions.remove(uri);
+
 	ESLint.unregisterAsFormatter(document);
 });
 
 function environmentChanged() {
 	ESLint.clearSettings();
+
 	RuleSeverities.clear();
+
 	SaveRuleConfigs.clear();
+
 	ESLint.clearFormatters();
+
 	connection.languages.diagnostics.refresh().catch(() => {
 		connection.console.error("Failed to refresh diagnostics");
 	});
@@ -252,7 +266,9 @@ connection.onInitialize((params, _cancel, progress) => {
 	progress.begin("Initializing ESLint Server");
 
 	const syncKind: TextDocumentSyncKind = TextDocumentSyncKind.Incremental;
+
 	clientCapabilities = params.capabilities;
+
 	progress.done();
 
 	const capabilities: ServerCapabilities = {
@@ -310,6 +326,7 @@ connection.onInitialized(() => {
 		connection.onDidChangeConfiguration((_params) => {
 			environmentChanged();
 		});
+
 		void connection.client.register(
 			DidChangeConfigurationNotification.type,
 			undefined,
@@ -343,12 +360,14 @@ connection.languages.diagnostics.on(async (params) => {
 	) {
 		return emptyDiagnosticResult;
 	}
+
 	try {
 		const start = Date.now();
 
 		const diagnostics = await ESLint.validate(document, settings);
 
 		const timeTaken = Date.now() - start;
+
 		void connection.sendNotification(StatusNotification.type, {
 			uri: document.uri,
 			state: Status.ok,
@@ -372,7 +391,9 @@ connection.languages.diagnostics.on(async (params) => {
 					break;
 				}
 			}
+
 			status = status || Status.error;
+
 			void connection.sendNotification(StatusNotification.type, {
 				uri: document.uri,
 				state: status,
@@ -381,11 +402,13 @@ connection.languages.diagnostics.on(async (params) => {
 			connection.console.info(
 				ESLint.ErrorHandlers.getMessage(err, document),
 			);
+
 			void connection.sendNotification(StatusNotification.type, {
 				uri: document.uri,
 				state: Status.ok,
 			});
 		}
+
 		return emptyDiagnosticResult;
 	}
 });
@@ -394,10 +417,14 @@ connection.onDidChangeWatchedFiles(async (params) => {
 	// A .eslintrc has change. No smartness here.
 	// Simply revalidate all file.
 	RuleMetaData.clear();
+
 	ESLint.ErrorHandlers.clearNoConfigReported();
+
 	ESLint.ErrorHandlers.clearMissingModuleReported();
+
 	ESLint.clearSettings(); // config files can change plugins and parser.
 	RuleSeverities.clear();
+
 	SaveRuleConfigs.clear();
 
 	await Promise.all(
@@ -407,6 +434,7 @@ connection.onDidChangeWatchedFiles(async (params) => {
 			if (fsPath === undefined || fsPath.length === 0 || isUNC(fsPath)) {
 				return;
 			}
+
 			const dirname = path.dirname(fsPath);
 
 			if (dirname) {
@@ -424,12 +452,14 @@ connection.onDidChangeWatchedFiles(async (params) => {
 						await eslintClass.lintText("", {
 							filePath: path.join(dirname, "___test___.js"),
 						});
+
 						ESLint.ErrorHandlers.removeConfigErrorReported(fsPath);
 					} catch (error) {}
 				}
 			}
 		}),
 	);
+
 	connection.languages.diagnostics.refresh().catch(() => {
 		connection.console.error("Failed to refresh diagnostics");
 	});
@@ -437,15 +467,21 @@ connection.onDidChangeWatchedFiles(async (params) => {
 
 type RuleCodeActions = {
 	fixes: CodeAction[];
+
 	suggestions: CodeAction[];
+
 	disable?: CodeAction;
+
 	fixAll?: CodeAction;
+
 	disableFile?: CodeAction;
+
 	showDocumentation?: CodeAction;
 };
 
 class CodeActionResult {
 	private _actions: Map<string, RuleCodeActions>;
+
 	private _fixAll: CodeAction[] | undefined;
 
 	public constructor() {
@@ -457,8 +493,10 @@ class CodeActionResult {
 
 		if (result === undefined) {
 			result = { fixes: [], suggestions: [] };
+
 			this._actions.set(ruleId, result);
 		}
+
 		return result;
 	}
 
@@ -466,6 +504,7 @@ class CodeActionResult {
 		if (this._fixAll === undefined) {
 			this._fixAll = [];
 		}
+
 		return this._fixAll;
 	}
 
@@ -474,24 +513,30 @@ class CodeActionResult {
 
 		for (const actions of this._actions.values()) {
 			result.push(...actions.fixes);
+
 			result.push(...actions.suggestions);
 
 			if (actions.disable) {
 				result.push(actions.disable);
 			}
+
 			if (actions.fixAll) {
 				result.push(actions.fixAll);
 			}
+
 			if (actions.disableFile) {
 				result.push(actions.disableFile);
 			}
+
 			if (actions.showDocumentation) {
 				result.push(actions.showDocumentation);
 			}
 		}
+
 		if (this._fixAll !== undefined) {
 			result.push(...this._fixAll);
 		}
+
 		return result;
 	}
 
@@ -501,29 +546,37 @@ class CodeActionResult {
 		for (const actions of this._actions.values()) {
 			result += actions.fixes.length;
 		}
+
 		return result;
 	}
 }
 
 class Changes {
 	private readonly values: Map<string, WorkspaceChange>;
+
 	private uri: string | undefined;
+
 	private version: number | undefined;
 
 	constructor() {
 		this.values = new Map();
+
 		this.uri = undefined;
+
 		this.version = undefined;
 	}
 
 	public clear(textDocument?: TextDocument): void {
 		if (textDocument === undefined) {
 			this.uri = undefined;
+
 			this.version = undefined;
 		} else {
 			this.uri = textDocument.uri;
+
 			this.version = textDocument.version;
 		}
+
 		this.values.clear();
 	}
 
@@ -542,7 +595,9 @@ class Changes {
 
 interface CommandParams extends VersionedTextDocumentIdentifier {
 	version: number;
+
 	ruleId?: string;
+
 	sequence?: number;
 }
 
@@ -559,6 +614,7 @@ namespace CommandParams {
 			sequence,
 		};
 	}
+
 	export function hasRuleId(
 		value: CommandParams,
 	): value is CommandParams & { ruleId: string } {
@@ -597,6 +653,7 @@ connection.onCodeAction(async (params) => {
 		if (diagnostic !== undefined) {
 			action.diagnostics = [diagnostic];
 		}
+
 		return action;
 	}
 
@@ -746,12 +803,14 @@ connection.onCodeAction(async (params) => {
 
 		if (matchedLineDisable) {
 			disableRuleContent = `, ${editInfo.ruleId}`;
+
 			insertionIndex = getDisableRuleEditInsertionIndex(
 				currentLine,
 				lineComment,
 			);
 		} else if (matchedBlockDisable) {
 			disableRuleContent = `, ${editInfo.ruleId}`;
+
 			insertionIndex = getDisableRuleEditInsertionIndex(
 				currentLine,
 				blockComment,
@@ -760,10 +819,12 @@ connection.onCodeAction(async (params) => {
 			// We're creating a new disabling comment.
 			const commentStyle =
 				settings.codeAction.disableRuleComment.commentStyle;
+
 			disableRuleContent =
 				commentStyle === "line"
 					? ` ${lineComment} eslint-disable-line ${editInfo.ruleId}`
 					: ` ${blockComment[0]} eslint-disable-line ${editInfo.ruleId} ${blockComment[1]}`;
+
 			insertionIndex = uinteger.MAX_VALUE;
 		}
 
@@ -798,6 +859,7 @@ connection.onCodeAction(async (params) => {
 		if (length === 0) {
 			return undefined;
 		}
+
 		return array[length - 1];
 	}
 
@@ -865,6 +927,7 @@ connection.onCodeAction(async (params) => {
 				),
 			);
 		}
+
 		return result.all();
 	}
 
@@ -888,13 +951,16 @@ connection.onCodeAction(async (params) => {
 		documentVersion = editInfo.documentVersion;
 
 		const ruleId = editInfo.ruleId;
+
 		allFixableRuleIds.push(ruleId);
 
 		if (Problem.isFixable(editInfo)) {
 			const workspaceChange = new WorkspaceChange();
+
 			workspaceChange
 				.getTextEditChange({ uri, version: documentVersion })
 				.add(FixableProblem.createTextEdit(textDocument, editInfo));
+
 			changes.set(
 				`${CommandIds.applySingleFix}:${ruleId}`,
 				workspaceChange,
@@ -907,12 +973,16 @@ connection.onCodeAction(async (params) => {
 				CommandParams.create(textDocument, ruleId),
 				editInfo.diagnostic,
 			);
+
 			action.isPreferred = true;
+
 			result.get(ruleId).fixes.push(action);
 		}
+
 		if (Problem.hasSuggestions(editInfo)) {
 			editInfo.suggestions.forEach((suggestion, suggestionSequence) => {
 				const workspaceChange = new WorkspaceChange();
+
 				workspaceChange
 					.getTextEditChange({ uri, version: documentVersion })
 					.add(
@@ -921,6 +991,7 @@ connection.onCodeAction(async (params) => {
 							suggestion,
 						),
 					);
+
 				changes.set(
 					`${CommandIds.applySuggestion}:${ruleId}:${suggestionSequence}`,
 					workspaceChange,
@@ -937,6 +1008,7 @@ connection.onCodeAction(async (params) => {
 					),
 					editInfo.diagnostic,
 				);
+
 				result.get(ruleId).suggestions.push(action);
 			});
 		}
@@ -965,6 +1037,7 @@ connection.onCodeAction(async (params) => {
 
 				const indentationText =
 					matches !== null && matches.length > 0 ? matches[1] : "";
+
 				workspaceChange
 					.getTextEditChange({ uri, version: documentVersion })
 					.add(
@@ -975,10 +1048,12 @@ connection.onCodeAction(async (params) => {
 						),
 					);
 			}
+
 			changes.set(
 				`${CommandIds.applyDisableLine}:${ruleId}`,
 				workspaceChange,
 			);
+
 			result.get(ruleId).disable = createCodeAction(
 				`Disable ${ruleId} for this line`,
 				kind,
@@ -988,13 +1063,16 @@ connection.onCodeAction(async (params) => {
 
 			if (result.get(ruleId).disableFile === undefined) {
 				workspaceChange = new WorkspaceChange();
+
 				workspaceChange
 					.getTextEditChange({ uri, version: documentVersion })
 					.add(createDisableFileTextEdit(textDocument, editInfo));
+
 				changes.set(
 					`${CommandIds.applyDisableFile}:${ruleId}`,
 					workspaceChange,
 				);
+
 				result.get(ruleId).disableFile = createCodeAction(
 					`Disable ${ruleId} for the entire file`,
 					kind,
@@ -1029,6 +1107,7 @@ connection.onCodeAction(async (params) => {
 			if (documentVersion === -1) {
 				documentVersion = editInfo.documentVersion;
 			}
+
 			if (sameProblems.has(editInfo.ruleId)) {
 				const same = sameProblems.get(editInfo.ruleId)!;
 
@@ -1037,6 +1116,7 @@ connection.onCodeAction(async (params) => {
 				}
 			}
 		}
+
 		sameProblems.forEach((same, ruleId) => {
 			if (same.length > 1) {
 				const sameFixes: WorkspaceChange = new WorkspaceChange();
@@ -1045,10 +1125,13 @@ connection.onCodeAction(async (params) => {
 					uri,
 					version: documentVersion,
 				});
+
 				same.map((fix) =>
 					FixableProblem.createTextEdit(textDocument, fix),
 				).forEach((edit) => sameTextChange.add(edit));
+
 				changes.set(CommandIds.applySameFixes, sameFixes);
+
 				result.get(ruleId).fixAll = createCodeAction(
 					`Fix all ${ruleId} problems`,
 					kind,
@@ -1057,6 +1140,7 @@ connection.onCodeAction(async (params) => {
 				);
 			}
 		});
+
 		result.fixAll.push(
 			createCodeAction(
 				`Fix all auto-fixable problems`,
@@ -1066,6 +1150,7 @@ connection.onCodeAction(async (params) => {
 			),
 		);
 	}
+
 	return result.all();
 });
 
@@ -1099,6 +1184,7 @@ async function computeAllFixes(
 	) {
 		return [];
 	}
+
 	const filePath = inferFilePath(textDocument);
 
 	const problems = CodeActions.get(uri);
@@ -1120,6 +1206,7 @@ async function computeAllFixes(
 							FixableProblem.createTextEdit(textDocument, fix),
 						)
 				: [];
+
 		connection.tracer.log(
 			`Computing all fixes took: ${Date.now() - start} ms.`,
 		);
@@ -1142,6 +1229,7 @@ async function computeAllFixes(
 				overrideConfig.rules[ruleId] = "off";
 			}
 		}
+
 		return ESLint.withClass(
 			async (eslintClass) => {
 				// Don't use any precomputed fixes since neighbour fixes can produce incorrect results.
@@ -1152,6 +1240,7 @@ async function computeAllFixes(
 					originalContent,
 					{ filePath },
 				);
+
 				connection.tracer.log(
 					`Computing all fixes took: ${Date.now() - start} ms.`,
 				);
@@ -1162,6 +1251,7 @@ async function computeAllFixes(
 					reportResults[0].output !== undefined
 				) {
 					const fixedContent = reportResults[0].output;
+
 					start = Date.now();
 
 					const diffs = stringDiff(
@@ -1169,6 +1259,7 @@ async function computeAllFixes(
 						fixedContent,
 						false,
 					);
+
 					connection.tracer.log(
 						`Computing minimal edits took: ${Date.now() - start} ms.`,
 					);
@@ -1190,6 +1281,7 @@ async function computeAllFixes(
 						});
 					}
 				}
+
 				return result;
 			},
 			settings,
@@ -1215,6 +1307,7 @@ connection.onExecuteCommand(async (params) => {
 			workspaceChange = new WorkspaceChange();
 
 			const textChange = workspaceChange.getTextEditChange(commandParams);
+
 			edits.forEach((edit) => textChange.add(edit));
 		}
 	} else {
@@ -1251,6 +1344,7 @@ connection.onExecuteCommand(async (params) => {
 	if (workspaceChange === undefined) {
 		return null;
 	}
+
 	return connection.workspace.applyEdit(workspaceChange.edit).then(
 		(response) => {
 			if (!response.applied) {
@@ -1258,6 +1352,7 @@ connection.onExecuteCommand(async (params) => {
 					`Failed to apply command: ${params.command}`,
 				);
 			}
+
 			return null;
 		},
 		() => {
@@ -1276,6 +1371,7 @@ connection.onDocumentFormatting((params) => {
 	if (textDocument === undefined) {
 		return [];
 	}
+
 	return computeAllFixes(
 		{ uri: textDocument.uri, version: textDocument.version },
 		AllFixesMode.format,

@@ -34,6 +34,7 @@ function createDefaultConfiguration(): void {
 
 		return;
 	}
+
 	const noConfigFolders = folders.filter((folder) => {
 		const configFiles = [
 			".eslintrc.js",
@@ -49,6 +50,7 @@ function createDefaultConfiguration(): void {
 				return false;
 			}
 		}
+
 		return true;
 	});
 
@@ -62,8 +64,10 @@ function createDefaultConfiguration(): void {
 				"All workspace folders already contain an ESLint configuration file.",
 			);
 		}
+
 		return;
 	}
+
 	void pickFolder(
 		noConfigFolders,
 		"Select a workspace folder to generate a ESLint configuration for",
@@ -71,6 +75,7 @@ function createDefaultConfiguration(): void {
 		if (!folder) {
 			return;
 		}
+
 		const folderRootPath = folder.uri.fsPath;
 
 		const terminal = Window.createTerminal({
@@ -79,7 +84,9 @@ function createDefaultConfiguration(): void {
 		});
 
 		const eslintCommand = await findEslint(folderRootPath);
+
 		terminal.sendText(`${eslintCommand} --init`);
+
 		terminal.show();
 	});
 }
@@ -97,10 +104,14 @@ export function activate(context: ExtensionContext) {
 		if (activated) {
 			return;
 		}
+
 		if (validator.check(textDocument) !== Validate.off) {
 			openListener.dispose();
+
 			configurationListener.dispose();
+
 			activated = true;
+
 			realActivate(context);
 		}
 	}
@@ -109,11 +120,15 @@ export function activate(context: ExtensionContext) {
 		if (activated) {
 			return;
 		}
+
 		for (const textDocument of Workspace.textDocuments) {
 			if (validator.check(textDocument) !== Validate.off) {
 				openListener.dispose();
+
 				configurationListener.dispose();
+
 				activated = true;
+
 				realActivate(context);
 
 				return;
@@ -145,6 +160,7 @@ export function activate(context: ExtensionContext) {
 			);
 		}
 	};
+
 	onActivateCommands = [
 		Commands.registerCommand("eslint.executeAutofix", notValidating),
 		Commands.registerCommand("eslint.showOutputChannel", notValidating),
@@ -161,12 +177,14 @@ export function activate(context: ExtensionContext) {
 	);
 
 	taskProvider.start();
+
 	configurationChanged();
 }
 
 function realActivate(context: ExtensionContext): void {
 	if (onActivateCommands) {
 		onActivateCommands.forEach((command) => command.dispose());
+
 		onActivateCommands = undefined;
 	}
 
@@ -179,6 +197,7 @@ function realActivate(context: ExtensionContext): void {
 	context.subscriptions.push(
 		Commands.registerCommand("eslint.showOutputChannel", async () => {
 			client.outputChannel.show();
+
 			acknowledgePerformanceStatus();
 		}),
 		Commands.registerCommand("eslint.migrateSettings", () => {
@@ -216,6 +235,7 @@ export function deactivate(): Promise<void> {
 	if (onActivateCommands !== undefined) {
 		onActivateCommands.forEach((command) => command.dispose());
 	}
+
 	taskProvider.dispose();
 
 	return client !== undefined ? client.stop() : Promise.resolve();

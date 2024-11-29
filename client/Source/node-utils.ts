@@ -51,6 +51,7 @@ export function toPosixPath(path: string): string {
 	if (process.platform !== "win32") {
 		return path;
 	}
+
 	return path.replace(/\\/g, "/");
 }
 
@@ -85,6 +86,7 @@ function existFile(file: string): Promise<boolean> {
 			if (error !== null) {
 				resolve(false);
 			}
+
 			resolve(stats.isFile());
 		});
 	});
@@ -105,6 +107,7 @@ enum NodeType {
 // Text inside the pattern
 type TextNode = {
 	type: NodeType.text;
+
 	value: string;
 };
 
@@ -131,6 +134,7 @@ type GlobStarNode = {
 // A bracket
 type BracketNode = {
 	type: NodeType.bracket;
+
 	value: string;
 };
 
@@ -142,6 +146,7 @@ type BraceAlternative =
 	| BraceNode;
 type BraceNode = {
 	type: NodeType.brace;
+
 	alternatives: BraceAlternative[];
 };
 
@@ -163,15 +168,20 @@ function escapeRegExpCharacters(value: string): string {
  */
 class PatternParser {
 	private value: string;
+
 	private index: number;
 
 	private mode: "pattern" | "brace";
+
 	private stopChar: string | undefined;
 
 	constructor(value: string, mode: "pattern" | "brace" = "pattern") {
 		this.value = value;
+
 		this.index = 0;
+
 		this.mode = mode;
+
 		this.stopChar = mode === "pattern" ? undefined : "}";
 	}
 
@@ -199,6 +209,7 @@ class PatternParser {
 
 						return { type: NodeType.separator };
 					}
+
 				case "?":
 					this.index++;
 
@@ -214,6 +225,7 @@ class PatternParser {
 
 						return { type: NodeType.star };
 					}
+
 				case "{":
 					if (start < this.index) {
 						return this.makeTextNode(start);
@@ -236,8 +248,10 @@ class PatternParser {
 									`Invalid glob pattern ${this.index}. Stopped at ${this.index}`,
 								);
 							}
+
 							alternatives.push(node);
 						}
+
 						this.index = this.index + bracketParser.index + 2;
 
 						return {
@@ -245,17 +259,20 @@ class PatternParser {
 							alternatives: alternatives,
 						};
 					}
+
 					break;
 
 				case ",":
 					if (this.mode === "brace") {
 						if (start < this.index) {
 							const result = this.makeTextNode(start);
+
 							this.index++;
 
 							return result;
 						}
 					}
+
 					this.index++;
 
 					break;
@@ -263,6 +280,7 @@ class PatternParser {
 				case "[":
 					// eslint-disable-next-line no-case-declarations
 					const buffer: string[] = [];
+
 					this.index++;
 					// eslint-disable-next-line no-case-declarations
 					const firstIndex = this.index;
@@ -300,8 +318,10 @@ class PatternParser {
 						} else {
 							buffer.push(escapeRegExpCharacters(ch));
 						}
+
 						this.index++;
 					}
+
 					throw new Error(
 						`Invalid glob pattern ${this.index}. Stopped at ${this.index}`,
 					);
@@ -310,6 +330,7 @@ class PatternParser {
 					this.index++;
 			}
 		}
+
 		return start === this.index ? undefined : this.makeTextNode(start);
 	}
 }
@@ -359,6 +380,7 @@ export function convert2RegExp(pattern: string): RegExp | undefined {
 				for (const child of node.alternatives) {
 					buffer.push(convertNode(child));
 				}
+
 				return `(?:${buffer.join("|")})`;
 			}
 		}
@@ -374,6 +396,7 @@ export function convert2RegExp(pattern: string): RegExp | undefined {
 		while ((node = parser.next()) !== undefined) {
 			buffer.push(convertNode(node));
 		}
+
 		return buffer.length > 0 ? new RegExp(buffer.join("")) : undefined;
 	} catch (err) {
 		console.error(err);
@@ -396,7 +419,9 @@ interface Thunk<T> {
  */
 interface Waiting<T> {
 	thunk: Thunk<T | PromiseLike<T>>;
+
 	resolve: (value: T | PromiseLike<T>) => void;
+
 	reject: (reason?: any) => void;
 }
 
@@ -405,15 +430,20 @@ interface Waiting<T> {
  */
 export class Semaphore<T = void> {
 	private _capacity: number;
+
 	private _active: number;
+
 	private _waiting: Waiting<T>[];
 
 	public constructor(capacity: number = 1) {
 		if (capacity <= 0) {
 			throw new Error("Capacity must be greater than 0");
 		}
+
 		this._capacity = capacity;
+
 		this._active = 0;
+
 		this._waiting = [];
 	}
 
@@ -425,6 +455,7 @@ export class Semaphore<T = void> {
 	public lock(thunk: () => T | PromiseLike<T>): Promise<T> {
 		return new Promise((resolve, reject) => {
 			this._waiting.push({ thunk, resolve, reject });
+
 			this.runNext();
 		});
 	}
@@ -440,6 +471,7 @@ export class Semaphore<T = void> {
 		if (this._waiting.length === 0 || this._active === this._capacity) {
 			return;
 		}
+
 		setImmediate(() => this.doRunNext());
 	}
 
@@ -447,12 +479,15 @@ export class Semaphore<T = void> {
 		if (this._waiting.length === 0 || this._active === this._capacity) {
 			return;
 		}
+
 		const next = this._waiting.shift()!;
+
 		this._active++;
 
 		if (this._active > this._capacity) {
 			throw new Error(`To many thunks active`);
 		}
+
 		try {
 			const result = next.thunk();
 
@@ -460,23 +495,31 @@ export class Semaphore<T = void> {
 				result.then(
 					(value) => {
 						this._active--;
+
 						next.resolve(value);
+
 						this.runNext();
 					},
 					(err) => {
 						this._active--;
+
 						next.reject(err);
+
 						this.runNext();
 					},
 				);
 			} else {
 				this._active--;
+
 				next.resolve(result);
+
 				this.runNext();
 			}
 		} catch (err) {
 			this._active--;
+
 			next.reject(err);
+
 			this.runNext();
 		}
 	}
