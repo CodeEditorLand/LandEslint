@@ -4,11 +4,11 @@ The document describes the settings and setup instructions for the previous 1.9.
 
 ## Settings Options
 
-The extension contributes the following variables to the [`settings`](HTTPS://code.visualstudio.com/docs/customization/userandworkspace):
+The extension contributes the following variables to the [`settings`](https://code.visualstudio.com/docs/customization/userandworkspace):
 
 - `eslint.enable`: enable/disable ESLint. Is enabled by default.
 - `eslint.lintTask.enable`: whether the extension contributes a lint task to lint a whole workspace folder.
-- `eslint.lintTask.options`: Command line options applied when running the task for linting the whole workspace (HTTPS://eslint.org/docs/user-guide/command-line-interface).
+- `eslint.lintTask.options`: Command line options applied when running the task for linting the whole workspace (https://eslint.org/docs/user-guide/command-line-interface).
   An example to point to a custom `.eslintrc.json` file and a custom `.eslintignore` is:
   ```json
   {
@@ -33,7 +33,7 @@ The extension contributes the following variables to the [`settings`](HTTPS://co
   "eslint.validate": [ "javascript", "javascriptreact", { "language": "html", "autoFix": true } ]
   ```
 
-- `eslint.workingDirectories` - an array for working directories to be used. ESLint resolves configuration files (e.g. `eslintrc`) relative to a working directory. This new settings allows users to control which working directory is used for which files (see also [`CLIEngine options#cwd`](HTTPS://eslint.org/docs/developer-guide/nodejs-api#cliengine)).
+- `eslint.workingDirectories` - an array for working directories to be used. ESLint resolves configuration files (e.g. `eslintrc`) relative to a working directory. This new settings allows users to control which working directory is used for which files (see also [`CLIEngine options#cwd`](https://eslint.org/docs/developer-guide/nodejs-api#cliengine)).
   Example:
   ```
   root/
@@ -82,7 +82,7 @@ The extension is linting an individual file only on typing. If you want to lint 
 
 ## Using ESLint to validate TypeScript files
 
-A great introduction on how to lint TypeScript using ESlint can be found in the [`TypeScript - ESLint`](HTTPS://github.com/typescript-eslint/typescript-eslint). Please make yourself familiar with the introduction before using the VS Code ESLint extension in a TypeScript setup. Especially make sure that you can validate TypeScript files successfully in a terminal using the `eslint` command.
+A great introduction on how to lint TypeScript using ESlint can be found in the [`TypeScript - ESLint`](https://github.com/typescript-eslint/typescript-eslint). Please make yourself familiar with the introduction before using the VS Code ESLint extension in a TypeScript setup. Especially make sure that you can validate TypeScript files successfully in a terminal using the `eslint` command.
 
 This project itself uses ESLint to validate its TypeScript files. So it can be used as a blueprint to get started.
 
