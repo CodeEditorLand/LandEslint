@@ -2,6 +2,6 @@
 	"name": "eslint8_flat_config",
 	"dependencies": {},
 	"devDependencies": {
-		"globals": "^13.18.0"
+		"globals": "13.18.0"
 	}
 }
