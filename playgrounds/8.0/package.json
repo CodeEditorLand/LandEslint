@@ -1,11 +1,5 @@
 {
 	"name": "eslint8_0",
-	"version": "1.0.0",
-	"private": true,
 	"dependencies": {},
-	"devDependencies": {
-		"eslint": "^8.57.0",
-		"eslint-plugin-html": "^8.0.0",
-		"eslint-plugin-vue": "^9.22.0"
-	}
+	"devDependencies": {}
 }

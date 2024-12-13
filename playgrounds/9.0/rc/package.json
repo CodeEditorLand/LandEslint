@@ -1,10 +1,7 @@
 {
 	"name": "eslint9_rc_config",
-	"version": "1.0.0",
-	"private": true,
 	"dependencies": {},
 	"devDependencies": {
-		"eslint": "9.0.0-rc.0",
 		"globals": "^15.0.0"
 	}
 }
