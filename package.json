@@ -610,10 +610,10 @@
 	],
 	"dependencies": {},
 	"devDependencies": {
-		"@types/node": "18.14.6",
-		"esbuild": "0.23.0",
+		"@types/node": "22.10.5",
+		"esbuild": "0.24.2",
 		"merge-options": "3.0.4",
-		"rimraf": "5.0.5",
+		"rimraf": "6.0.1",
 		"shelljs": "0.8.5",
 		"ts-loader": "9.5.1"
 	},
