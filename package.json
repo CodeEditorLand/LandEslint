@@ -610,7 +610,7 @@
 	],
 	"dependencies": {},
 	"devDependencies": {
-		"@types/node": "22.10.7",
+		"@types/node": "22.10.9",
 		"esbuild": "0.24.2",
 		"merge-options": "3.0.4",
 		"rimraf": "6.0.1",
