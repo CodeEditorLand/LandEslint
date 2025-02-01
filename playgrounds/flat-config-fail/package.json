@@ -1,7 +1,1 @@
-{
-	"name": "eslint8_flat_config",
-	"dependencies": {},
-	"devDependencies": {
-		"globals": "15.14.0"
-	}
-}
+
