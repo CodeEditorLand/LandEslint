@@ -610,8 +610,8 @@
 	],
 	"dependencies": {},
 	"devDependencies": {
-		"@types/node": "22.13.0",
-		"esbuild": "0.24.2",
+		"@types/node": "22.13.1",
+		"esbuild": "0.25.0",
 		"merge-options": "3.0.4",
 		"rimraf": "6.0.1",
 		"shelljs": "0.8.5",
