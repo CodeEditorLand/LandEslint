@@ -280,6 +280,7 @@
 				"eslint.probe": {
 					"default": [
 						"astro",
+						"civet",
 						"javascript",
 						"javascriptreact",
 						"typescript",
@@ -610,26 +611,19 @@
 	],
 	"dependencies": {},
 	"devDependencies": {
-		"@types/node": "22.13.4",
-		"esbuild": "0.25.0",
-		"merge-options": "3.0.4",
-		"rimraf": "6.0.1",
-		"shelljs": "0.8.5",
-		"ts-loader": "9.5.2"
-	},
-	"icon": "eslint_icon.png",
-	"capabilities": {
-		"untrustedWorkspaces": {
-			"description": "The extension requires workspace trust because it loads configuration files and code from the workspace and executes it.",
-			"supported": false
-		},
-		"virtualWorkspaces": {
-			"description": "Using ESLint is not possible in virtual workspaces.",
-			"supported": false
-		}
-	},
-	"enabledApiProposals": [],
-	"extensionKind": [
-		"workspace"
-	]
+		"@types/mocha": "^10.0.6",
+		"@types/node": "^18.14.6",
+		"@typescript-eslint/eslint-plugin": "^7.1.1",
+		"@typescript-eslint/parser": "^7.1.1",
+		"eslint": "^8.57.0",
+		"merge-options": "^3.0.4",
+		"mocha": "^10.8.2",
+		"rimraf": "^5.0.5",
+		"ts-loader": "^9.5.1",
+		"typescript": "^5.3.3",
+		"webpack": "^5.94.0",
+		"webpack-cli": "^5.1.4",
+		"shelljs": "^0.8.5",
+		"esbuild": "^0.25.0"
+	}
 }
