@@ -611,19 +611,11 @@
 	],
 	"dependencies": {},
 	"devDependencies": {
-		"@types/mocha": "^10.0.6",
 		"@types/node": "^18.14.6",
-		"@typescript-eslint/eslint-plugin": "^7.1.1",
-		"@typescript-eslint/parser": "^7.1.1",
-		"eslint": "^8.57.0",
+		"esbuild": "^0.25.0",
 		"merge-options": "^3.0.4",
-		"mocha": "^10.8.2",
 		"rimraf": "^5.0.5",
-		"ts-loader": "^9.5.1",
-		"typescript": "^5.3.3",
-		"webpack": "^5.94.0",
-		"webpack-cli": "^5.1.4",
 		"shelljs": "^0.8.5",
-		"esbuild": "^0.25.0"
+		"ts-loader": "^9.5.1"
 	}
 }
