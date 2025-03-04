@@ -611,11 +611,11 @@
 	],
 	"dependencies": {},
 	"devDependencies": {
-		"@types/node": "^18.14.6",
-		"esbuild": "^0.25.0",
-		"merge-options": "^3.0.4",
-		"rimraf": "^5.0.5",
-		"shelljs": "^0.8.5",
-		"ts-loader": "^9.5.1"
+		"@types/node": "12.13.9",
+		"esbuild": "0.25.0",
+		"merge-options": "3.0.4",
+		"rimraf": "5.0.1",
+		"shelljs": "0.8.5",
+		"ts-loader": "9.5.2"
 	}
 }
